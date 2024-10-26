@@ -18,7 +18,7 @@ export default function Map({ center, zoom }: MapProps) {
                     zoom,
                     disableDefaultUI: true,
                     zoomControl: true,
-                    mapId: "PinTown",
+                    mapId: "WhereWeIt",
                 });
 
                 // 클러스터 디자인 수정 필요
