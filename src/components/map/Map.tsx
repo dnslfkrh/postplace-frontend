@@ -21,17 +21,13 @@ export default function Map({ initialCenter, initialZoom, onMarkerCreate }: MapP
             const mapInstance = new window.naver.maps.Map(mapRef.current, {
                 center: new window.naver.maps.LatLng(initialCenter.lat, initialCenter.lng),
                 zoom: initialZoom,
-                minZoom: 6,
+                minZoom: 11,
                 maxZoom: 21,
                 mapTypeId: window.naver.maps.MapTypeId.NORMAL,
-                mapTypeControl: true,
-                zoomControl: true,
-                scaleControl: true,
-                mapDataControl: true,
-                bounds: new window.naver.maps.LatLngBounds(
-                    new window.naver.maps.LatLng(SOUTH_KOREA_BOUNDARY.south, SOUTH_KOREA_BOUNDARY.west),
-                    new window.naver.maps.LatLng(SOUTH_KOREA_BOUNDARY.north, SOUTH_KOREA_BOUNDARY.east)
-                )
+                mapTypeControl: false,
+                zoomControl: false,
+                scaleControl: false,
+                mapDataControl: false,
             });
 
             setMap(mapInstance);
@@ -60,18 +56,23 @@ export default function Map({ initialCenter, initialZoom, onMarkerCreate }: MapP
             };
         };
 
-        if (window.naver) {
-            loadMap();
-        } else {
-            const handleScriptLoad = () => {
+        const initializeMap = () => {
+            if (window.naver) {
                 loadMap();
-            };
-            window.addEventListener("load", handleScriptLoad);
+            } else {
+                const script = document.createElement('script');
+                script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${process.env.NEXT_PUBLIC_NAVER_CLIENT_ID}`;
+                script.async = true;
+                script.onload = loadMap;
+                document.head.appendChild(script);
+            }
+        };
 
-            return () => {
-                window.removeEventListener("load", handleScriptLoad);
-            };
-        }
+        initializeMap();
+
+        return () => {
+            setMap(null);
+        };
     }, [initialCenter, initialZoom]);
 
     const displayMarkers = (markers: { id: string; position: { lat: number; lng: number } }[]) => {
@@ -97,7 +98,7 @@ export default function Map({ initialCenter, initialZoom, onMarkerCreate }: MapP
     };
 
     return (
-        <div className="w-full h-[500px] relative">
+        <div className="w-full h-screen relative">
             <div ref={mapRef} className="w-full h-full" />
         </div>
     );

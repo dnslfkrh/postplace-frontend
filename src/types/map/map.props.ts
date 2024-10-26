@@ -15,7 +15,7 @@ export interface MapProps {
             lat: number,
             lng: number
         }
-    ) => void;
+    ) => void | undefined;
 };
 
 export interface Marker {
