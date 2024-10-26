@@ -1,105 +1,68 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { MapProps } from "@/types/map/map.props";
-import { isSouthKorea, SOUTH_KOREA_BOUNDARY } from "@/utils/map/geoValidation";
+import { useEffect, useState } from 'react';
+import { MapProps } from '@/types/map/Props';
+import { MarkerClusterer } from '@googlemaps/markerclusterer';
 
-declare global {
-    interface Window {
-        naver: any;
-    }
-}
-
-export default function Map({ initialCenter, initialZoom, onMarkerCreate }: MapProps) {
-    const mapRef = useRef<HTMLDivElement>(null);
-    const [map, setMap] = useState<any>(null);
+export default function Map({ center, zoom }: MapProps) {
+    const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
 
     useEffect(() => {
-        const loadMap = () => {
-            if (!mapRef.current || !window.naver) return;
+        const loadMap = async () => {
+            const { google } = window as any;
+            const mapElement = document.getElementById('map') as HTMLElement;
 
-            const mapInstance = new window.naver.maps.Map(mapRef.current, {
-                center: new window.naver.maps.LatLng(initialCenter.lat, initialCenter.lng),
-                zoom: initialZoom,
-                minZoom: 11,
-                maxZoom: 21,
-                mapTypeId: window.naver.maps.MapTypeId.NORMAL,
-                mapTypeControl: false,
-                zoomControl: false,
-                scaleControl: false,
-                mapDataControl: false,
-            });
-
-            setMap(mapInstance);
-
-            window.naver.maps.Event.addListener(mapInstance, "click", (e: any) => {
-                const position = {
-                    lat: e.coord.y,
-                    lng: e.coord.x
-                };
-
-                if (!isSouthKorea(position)) {
-                    alert("대한민국 영토를 선택해 주십시오.");
-                    return;
-                }
-
-                const marker = new window.naver.maps.Marker({
-                    position: new window.naver.maps.LatLng(position.lat, position.lng),
-                    map: mapInstance
+            if (mapElement && google) {
+                const map = new google.maps.Map(mapElement, {
+                    center,
+                    zoom,
+                    disableDefaultUI: true,
+                    zoomControl: true,
+                    mapId: "PinTown",
                 });
 
-                onMarkerCreate?.(position);
-            });
+                // 클러스터 디자인 수정 필요
+                const markerCluster = new MarkerClusterer({ map });
 
-            return () => {
-                mapInstance?.destroy();
-            };
-        };
+                addMarker(center, map, markerCluster);
 
-        const initializeMap = () => {
-            if (window.naver) {
-                loadMap();
-            } else {
-                const script = document.createElement('script');
-                script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpClientId=${process.env.NEXT_PUBLIC_NAVER_CLIENT_ID}`;
-                script.async = true;
-                script.onload = loadMap;
-                document.head.appendChild(script);
+                map.addListener('click', (event: google.maps.MapMouseEvent) => {
+                    if (event.latLng) {
+                        const position = event.latLng.toJSON();
+                        addMarker(position, map, markerCluster);
+                    }
+                });
             }
         };
 
-        initializeMap();
-
-        return () => {
-            setMap(null);
-        };
-    }, [initialCenter, initialZoom]);
-
-    const displayMarkers = (markers: { id: string; position: { lat: number; lng: number } }[]) => {
-        if (!map) {
-            return;
+        if (!window.google) {
+            const script = document.createElement('script');
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_API_KEY}&libraries=marker`;
+            script.async = true;
+            script.defer = true;
+            script.onload = loadMap;
+            document.body.appendChild(script);
+        } else {
+            loadMap();
         }
+    }, [center, zoom]);
 
-        markers.forEach(markerData => {
-            if (isSouthKorea(markerData.position)) {
-                const marker = new window.naver.maps.Marker({
-                    position: new window.naver.maps.LatLng(
-                        markerData.position.lat,
-                        markerData.position.lng
-                    ),
-                    map: map
-                });
-
-                window.naver.maps.Event.addListener(marker, 'click', () => {
-                    console.log('Marker clicked:', markerData.id);
-                });
-            }
+    const addMarker = (position: google.maps.LatLngLiteral, map: google.maps.Map, markerCluster: MarkerClusterer) => {
+        const marker = new google.maps.marker.AdvancedMarkerElement({
+            position,
+            map,
+            title: '새 마커',
         });
+
+        marker.addListener('click', () => {
+            console.log('새 마커 클릭됨!');
+        });
+
+        markerCluster.addMarker(marker);
+        setMarkers((prevMarkers) => [...prevMarkers, marker]);
     };
 
     return (
-        <div className="w-full h-screen relative">
-            <div ref={mapRef} className="w-full h-full" />
-        </div>
+        <div id="map" className="h-full w-full" />
     );
 }
