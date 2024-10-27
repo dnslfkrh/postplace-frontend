@@ -3,6 +3,14 @@ import { MapProps } from '@/types/map/Props';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { isSouthKorea } from '@/utils/map/geoValidation';
 
+const MAP_OPTIONS = {
+    disableDefaultUI: true,
+    zoomControl: true,
+    clickableIcons: false,
+    minZoom: 10,
+    maxZoom: 17
+};
+
 export default function Map({ center, zoom }: MapProps) {
     const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
     const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
@@ -16,33 +24,16 @@ export default function Map({ center, zoom }: MapProps) {
                 const map = new google.maps.Map(mapElement, {
                     center,
                     zoom,
-                    disableDefaultUI: true,
-                    zoomControl: true,
-                    clickableIcons: false,
                     mapId: process.env.NEXT_PUBLIC_MAP_ID,
+                    ...MAP_OPTIONS
                 });
 
+                // 클러스터 초시화
                 const markerCluster = new MarkerClusterer({ map });
 
                 // 지오코더 초기화
                 const geocoderInstance = new google.maps.Geocoder();
                 setGeocoder(geocoderInstance);
-
-                // 초기 마커 추가: 위치가 대한민국인지 확인 후 추가
-                geocoderInstance.geocode({ location: center }, (results: google.maps.GeocoderResult[] | undefined, status: google.maps.GeocoderStatus) => {
-                    if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
-                        const address = results[0].formatted_address;
-                        console.log('초기 주소:', address);
-
-                        if (isSouthKorea(address)) {
-                            addMarker(center, map, markerCluster); // 대한민국이면 마커 추가
-                        } else {
-                            console.warn('초기 위치는 대한민국 외부입니다. 마커를 추가하지 않았습니다.');
-                        }
-                    } else {
-                        console.error('지오코딩 실패:', status);
-                    }
-                });
 
                 map.addListener('click', async (event: google.maps.MapMouseEvent) => {
                     if (event.latLng) {
@@ -55,12 +46,12 @@ export default function Map({ center, zoom }: MapProps) {
 
                                 if (isSouthKorea(address)) {
                                     addMarker(position, map, markerCluster);
-                                    alert('이 위치는 대한민국 내에 있습니다. 마커가 추가되었습니다.');
                                 } else {
-                                    alert('이 위치는 대한민국 외부입니다. 마커를 추가할 수 없습니다.');
+                                    // 클릭한 곳의 주소가 대한민국이 아닌 경우
+                                    alert("대한민국 영토를 선택해 주세요.");
                                 }
                             } else {
-                                console.error('지오코딩 실패:', status);
+                                console.error("Geocoding 오류", status);
                             }
                         });
                     }
@@ -84,17 +75,19 @@ export default function Map({ center, zoom }: MapProps) {
         const marker = new google.maps.marker.AdvancedMarkerElement({
             position,
             map,
-            title: '새 마커',
+            title: "새 마커",
         });
 
+        // 게시물과 연결 필요
         marker.addListener('click', () => {
-            console.log('새 마커 클릭됨!');
+            console.log("마커 클릭");
         });
 
         markerCluster.addMarker(marker);
         setMarkers((prevMarkers) => [...prevMarkers, marker]);
     };
 
+    // 아직은 전체화면으로 지도만 표시
     return (
         <div id="map" className="h-full w-full" />
     );
