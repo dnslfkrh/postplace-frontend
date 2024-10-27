@@ -15,7 +15,7 @@ export default function Home() {
 
   return (
     <div style={{ height: '100vh' }}>
-      <Map center={ userLocation || defaultLocation } zoom={17} />
+      <Map center={userLocation || defaultLocation} zoom={17} />
     </div>
   );
 }
