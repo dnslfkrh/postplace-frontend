@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { MapProps } from '@/types/map/Props';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { isSouthKorea } from '@/utils/map/geoValidation';
-import { ConfirmModal } from '../UI/ConfirmModal';
+import { useRouter } from 'next/navigation';
+import { ConfirmModal } from './modals/ConfirmModal';
+import { PostModal } from './modals/PostModal';
 
 const MAP_OPTIONS = {
     disableDefaultUI: true,
@@ -13,11 +15,15 @@ const MAP_OPTIONS = {
 };
 
 export const Map = ({ center, zoom }: MapProps) => {
+    const router = useRouter();
     const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
     const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
-    const [selectedPosition, setSelectedPosition] = useState<google.maps.LatLngLiteral | null>(null);
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
     const [markerCluster, setMarkerCluster] = useState<MarkerClusterer | null>(null);
+    // 클릭 후 위치 확인받기
+    const [selectedPosition, setSelectedPosition] = useState<google.maps.LatLngLiteral | null>(null);
+    // 확인 후 게시물 작성하기
+    const [showPostModal, setShowPostModal] = useState(false);
 
     useEffect(() => {
         const loadMap = async () => {
@@ -95,28 +101,35 @@ export const Map = ({ center, zoom }: MapProps) => {
         setMarkers((prevMarkers) => [...prevMarkers, marker]);
     };
 
-    const handleConfirmAddMarker = () => {
+    const handleConfirmSelectPlace = () => {
         if (selectedPosition && mapInstance && markerCluster) {
-            addMarker(selectedPosition, mapInstance, markerCluster);
+            setShowPostModal(true);
             setSelectedPosition(null);
         }
     };
 
-    const handleCancelAddMarker = () => {
+    const handleCancelSelectPlace = () => {
         setSelectedPosition(null);
     };
 
-    // 아직은 전체화면으로 지도만 표시
+    const handleClosePostModal = () => {
+        setShowPostModal(false);
+    };
+
     return (
         <div className="h-full w-full relative">
             <div id="map" className="h-full w-full" />
 
             {selectedPosition && (
                 <ConfirmModal
-                    message="핀 추가하기"
-                    onConfirm={handleConfirmAddMarker}
-                    onCancel={handleCancelAddMarker}
+                    message="핀포인트 추가하기"
+                    onConfirm={handleConfirmSelectPlace}
+                    onCancel={handleCancelSelectPlace}
                 />
+            )}
+
+            {showPostModal && (
+                <PostModal onClose={handleClosePostModal} />
             )}
         </div>
     );

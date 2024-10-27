@@ -1,8 +1,7 @@
 declare global {
-    interface Window {
-      google: any;
-    }
+  interface Window {
+    google: any;
   }
-  
-  export {};
-  
+}
+
+export { };
