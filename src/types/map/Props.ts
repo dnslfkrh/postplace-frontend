@@ -4,6 +4,6 @@ export interface MapProps {
 }
 
 export interface CoordinateProps {
-    lat: number,
-    lng: number
+    lat: number;
+    lng: number;
 }

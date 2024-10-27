@@ -11,7 +11,7 @@ const MAP_OPTIONS = {
     maxZoom: 17
 };
 
-export default function Map({ center, zoom }: MapProps) {
+export const Map = ({ center, zoom }: MapProps) => {
     const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
     const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
 
@@ -28,7 +28,7 @@ export default function Map({ center, zoom }: MapProps) {
                     ...MAP_OPTIONS
                 });
 
-                // 클러스터 초시화
+                // 클러스터 초기화
                 const markerCluster = new MarkerClusterer({ map });
 
                 // 지오코더 초기화
