@@ -18,7 +18,8 @@ export default function Map({ center, zoom }: MapProps) {
                     zoom,
                     disableDefaultUI: true,
                     zoomControl: true,
-                    mapId: "WhereWeIt",
+                    clickableIcons: false,
+                    mapId: process.env.NEXT_PUBLIC_MAP_ID,
                 });
 
                 // 클러스터 디자인 수정 필요
