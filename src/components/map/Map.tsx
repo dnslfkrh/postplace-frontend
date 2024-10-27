@@ -1,11 +1,11 @@
-"use client";
-
 import { useEffect, useState } from 'react';
 import { MapProps } from '@/types/map/Props';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
+import { isSouthKorea } from '@/utils/map/geoValidation';
 
 export default function Map({ center, zoom }: MapProps) {
     const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
+    const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
 
     useEffect(() => {
         const loadMap = async () => {
@@ -22,15 +22,47 @@ export default function Map({ center, zoom }: MapProps) {
                     mapId: process.env.NEXT_PUBLIC_MAP_ID,
                 });
 
-                // 클러스터 디자인 수정 필요
                 const markerCluster = new MarkerClusterer({ map });
 
-                addMarker(center, map, markerCluster);
+                // 지오코더 초기화
+                const geocoderInstance = new google.maps.Geocoder();
+                setGeocoder(geocoderInstance);
 
-                map.addListener('click', (event: google.maps.MapMouseEvent) => {
+                // 초기 마커 추가: 위치가 대한민국인지 확인 후 추가
+                geocoderInstance.geocode({ location: center }, (results: google.maps.GeocoderResult[] | undefined, status: google.maps.GeocoderStatus) => {
+                    if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
+                        const address = results[0].formatted_address;
+                        console.log('초기 주소:', address);
+
+                        if (isSouthKorea(address)) {
+                            addMarker(center, map, markerCluster); // 대한민국이면 마커 추가
+                        } else {
+                            console.warn('초기 위치는 대한민국 외부입니다. 마커를 추가하지 않았습니다.');
+                        }
+                    } else {
+                        console.error('지오코딩 실패:', status);
+                    }
+                });
+
+                map.addListener('click', async (event: google.maps.MapMouseEvent) => {
                     if (event.latLng) {
                         const position = event.latLng.toJSON();
-                        addMarker(position, map, markerCluster);
+
+                        geocoderInstance.geocode({ location: position }, (results: google.maps.GeocoderResult[] | undefined, status: google.maps.GeocoderStatus) => {
+                            if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
+                                const address = results[0].formatted_address;
+                                console.log('주소:', address);
+
+                                if (isSouthKorea(address)) {
+                                    addMarker(position, map, markerCluster);
+                                    alert('이 위치는 대한민국 내에 있습니다. 마커가 추가되었습니다.');
+                                } else {
+                                    alert('이 위치는 대한민국 외부입니다. 마커를 추가할 수 없습니다.');
+                                }
+                            } else {
+                                console.error('지오코딩 실패:', status);
+                            }
+                        });
                     }
                 });
             }

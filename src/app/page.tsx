@@ -1,6 +1,6 @@
 "use client";
 
-import Map from "@/components/Map/Map";
+import Map from "@/components/map/Map";
 import useUserLocation from "@/hooks/map/useUserLocation";
 
 export default function Home() {
