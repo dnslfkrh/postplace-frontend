@@ -1,6 +1,4 @@
-interface PostModalProps {
-    onClose: () => void;
-}
+import { PostModalProps } from "@/types/UI/Props";
 
 export const PostModal = ({ onClose }: PostModalProps) => {
     return (

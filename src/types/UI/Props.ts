@@ -3,3 +3,7 @@ export interface ConfirmModalProps {
     onConfirm: () => void;
     onCancel: () => void;
 }
+
+export interface PostModalProps {
+    onClose: () => void;
+}
