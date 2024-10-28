@@ -1,5 +1,5 @@
 import React from 'react';
-import { ConfirmModalProps } from '@/types/UI/Props';
+import { ConfirmModalProps } from '@/types/map/Props';
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({ message, onConfirm, onCancel }) => (
     <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-black bg-opacity-40" onClick={onCancel}>

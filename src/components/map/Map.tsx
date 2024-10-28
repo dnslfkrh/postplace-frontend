@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { MapProps } from '@/types/map/Props';
+import { MapProps, NewArticleProps } from '@/types/map/Props';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { isSouthKorea } from '@/utils/map/geoValidation';
 import { useRouter } from 'next/navigation';
 import { ConfirmModal } from './modals/ConfirmModal';
 import { PostModal } from './modals/PostModal';
+import { fetchForCreateArticle } from '@/apis/map/articles/fetchForCreateArticle';
 
 const MAP_OPTIONS = {
     disableDefaultUI: true,
@@ -85,16 +86,16 @@ export const Map = ({ center, zoom }: MapProps) => {
         }
     }, [center, zoom]);
 
-    const addMarker = (position: google.maps.LatLngLiteral, title: string, content: string) => {
+    const addMarker = (position: { lat: number; lng: number }, title: string) => {
         const marker = new google.maps.marker.AdvancedMarkerElement({
-            position,
+            position: position, // 위치는 articleData의 position을 사용
             map: mapInstance,
-            title: "새 마커",
+            title: title, // title은 postData.title을 사용
         });
 
-        // 게시물과 연결 필요
+        // 게시물과 연결 필요, 현재는 제목만 로그 찍힘
         marker.addListener('click', () => {
-            console.log("마커 클릭");
+            console.log(title);
         });
 
         markerCluster?.addMarker(marker);
@@ -112,9 +113,26 @@ export const Map = ({ center, zoom }: MapProps) => {
     const handleClosePostModal = (postData?: { title: string, content: string }) => {
         if (postData && selectedPosition) {
             console.log("게시물 등록", postData.title, postData.content, selectedPosition);
-            addMarker(selectedPosition, postData.title, postData.content);
-        }
+            // addMarker(selectedPosition, postData.title, postData.content);
 
+            // 게시글 서버 전송 시도
+            const articleData: NewArticleProps = {
+                title: postData.title,
+                content: postData.content,
+                position: {
+                    lat: selectedPosition.lat,
+                    lng: selectedPosition.lng,
+                },
+            };
+
+            try {
+                fetchForCreateArticle(articleData);
+                addMarker(articleData.position, articleData.title);
+            } catch (error) {
+                console.log("게시글 생성 중 오류 발생: ", error)
+            }
+
+        }
         setShowPostModal(false);
         setSelectedPosition(null);
     };

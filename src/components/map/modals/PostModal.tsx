@@ -1,5 +1,5 @@
-import { PostModalProps } from "@/types/UI/Props";
 import { useState } from "react";
+import { PostModalProps } from "@/types/map/Props";
 
 export const PostModal = ({ onClose, onSubmit }: PostModalProps) => {
     const [title, setTitle] = useState("");
