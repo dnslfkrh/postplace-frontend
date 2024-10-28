@@ -85,10 +85,10 @@ export const Map = ({ center, zoom }: MapProps) => {
         }
     }, [center, zoom]);
 
-    const addMarker = (position: google.maps.LatLngLiteral, map: google.maps.Map, markerCluster: MarkerClusterer) => {
+    const addMarker = (position: google.maps.LatLngLiteral, title: string, content: string) => {
         const marker = new google.maps.marker.AdvancedMarkerElement({
             position,
-            map,
+            map: mapInstance,
             title: "새 마커",
         });
 
@@ -97,23 +97,26 @@ export const Map = ({ center, zoom }: MapProps) => {
             console.log("마커 클릭");
         });
 
-        markerCluster.addMarker(marker);
+        markerCluster?.addMarker(marker);
         setMarkers((prevMarkers) => [...prevMarkers, marker]);
     };
 
+    // Confirm Modal에서 확인을 누르면
     const handleConfirmSelectPlace = () => {
         if (selectedPosition && mapInstance && markerCluster) {
             setShowPostModal(true);
-            setSelectedPosition(null);
         }
     };
 
-    const handleCancelSelectPlace = () => {
-        setSelectedPosition(null);
-    };
+    // 게시글 입력 후 등록 버튼 누르면
+    const handleClosePostModal = (postData?: { title: string, content: string }) => {
+        if (postData && selectedPosition) {
+            console.log("게시물 등록", postData.title, postData.content, selectedPosition);
+            addMarker(selectedPosition, postData.title, postData.content);
+        }
 
-    const handleClosePostModal = () => {
         setShowPostModal(false);
+        setSelectedPosition(null);
     };
 
     return (
@@ -124,12 +127,15 @@ export const Map = ({ center, zoom }: MapProps) => {
                 <ConfirmModal
                     message="핀포인트 추가하기"
                     onConfirm={handleConfirmSelectPlace}
-                    onCancel={handleCancelSelectPlace}
+                    onCancel={() => setSelectedPosition(null)}
                 />
             )}
 
             {showPostModal && (
-                <PostModal onClose={handleClosePostModal} />
+                <PostModal
+                    onClose={() => handleClosePostModal()}
+                    onSubmit={handleClosePostModal}
+                />
             )}
         </div>
     );
