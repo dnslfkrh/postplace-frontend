@@ -25,5 +25,5 @@ export interface PostModalProps {
 export interface NewArticleProps {
     title: string;
     content: string;
-    position: { lat: number; lng: number};
+    position: { latitude: number; longitude: number};
 }

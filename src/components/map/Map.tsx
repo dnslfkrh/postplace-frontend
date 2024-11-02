@@ -110,7 +110,7 @@ export const Map = ({ center, zoom }: MapProps) => {
     };
 
     // 게시글 입력 후 등록 버튼 누르면
-    const handleClosePostModal = (postData?: { title: string, content: string }) => {
+    const handleClosePostModal = async (postData?: { title: string, content: string }) => {
         if (postData && selectedPosition) {
             console.log("게시물 등록", postData.title, postData.content, selectedPosition);
             // addMarker(selectedPosition, postData.title, postData.content);
@@ -120,14 +120,21 @@ export const Map = ({ center, zoom }: MapProps) => {
                 title: postData.title,
                 content: postData.content,
                 position: {
-                    lat: selectedPosition.lat,
-                    lng: selectedPosition.lng,
+                    latitude: selectedPosition.lat,
+                    longitude: selectedPosition.lng,
                 },
             };
 
             try {
-                fetchForCreateArticle(articleData);
-                addMarker(articleData.position, articleData.title);
+                await fetchForCreateArticle(articleData);
+                addMarker(
+                    {
+                        lat: articleData.position.latitude,
+                        lng: articleData.position.longitude
+                    },
+                    articleData.title
+                );
+
             } catch (error) {
                 console.log("게시글 생성 중 오류 발생: ", error)
             }

@@ -13,7 +13,7 @@ const LoginPage = () => {
             <div className="flex flex-col items-center space-y-3 p-8 bg-white shadow-xl rounded-lg">
                 <PostplaceLogo />
                 <GoogleLoginButton />
-                <Link href="/policy" className="text-xs">개인정보 처리 방침</Link>
+                <Link href="/policy" className="text-xs text-black">개인정보 처리 방침</Link>
             </div>
         </div>
     );
