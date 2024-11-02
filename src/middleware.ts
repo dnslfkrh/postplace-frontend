@@ -1,34 +1,14 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server";
 
-export const middleware = async (req: NextRequest) => {
-    const accessToken = req.cookies.get("accessToken");
-    const refreshToken = req.cookies.get("refreshToken");
+export const middleware = (req: NextRequest) => {
+    const hasRefreshToken = req.cookies.has("refreshToken");
 
-
-    if (!accessToken) {
-        if (!refreshToken) {
-            return NextResponse.redirect(new URL("/login", req.url));
+    if (req.nextUrl.pathname === "/login") {
+        if (hasRefreshToken) {
+            return NextResponse.redirect(new URL("/", req.url));
         }
-
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/refresh`, {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${refreshToken}`,
-            },
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            const newAccessToken = data.accessToken;
-            const res = NextResponse.next();
-
-            res.cookies.set("accessToken", newAccessToken, {
-                httpOnly: true,
-                secure: true,
-            });
-
-            return res;
-        } else {
+    } else {
+        if (!hasRefreshToken) {
             return NextResponse.redirect(new URL("/login", req.url));
         }
     }
@@ -37,5 +17,5 @@ export const middleware = async (req: NextRequest) => {
 };
 
 export const config = {
-    matcher: ['/'],
+    matcher: ['/', '/login'],
 };
