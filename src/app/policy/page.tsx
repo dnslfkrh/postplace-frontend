@@ -1,6 +1,6 @@
 "use client";
 
-import { PrivacyPolicy } from "@/components/auth/PrivacyPolicy";
+import { PrivacyPolicy } from "./_components/PrivacyPolicy";
 
 const PolicyPage = () => {
 

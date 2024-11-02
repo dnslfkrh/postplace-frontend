@@ -1,4 +1,4 @@
-import { saveTokenToLocalStorage } from "@/utils/auth/cookie/localStorage";
+import { saveTokenToLocalStorage } from "@/utils/cookie/localStorage";
 import { useRouter } from "next/navigation"
 import { useEffect } from "react";
 

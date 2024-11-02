@@ -1,7 +1,7 @@
 "use client";
 
-import { GoogleLoginButton } from "@/components/auth/GoogleLoginButton";
-import { PostplaceLogo } from "@/components/auth/PostplaceLogo";
+import { GoogleLoginButton } from "./_components/GoogleLoginButton";
+import { PostplaceLogo } from "./_components/PostplaceLogo";
 import { useGoogleAuth } from "@/hooks/auth/useAuth";
 import Link from "next/link";
 

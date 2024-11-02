@@ -4,7 +4,7 @@ import { NewArticleProps } from "@/types/map/Props"
 export const fetchForCreateArticle = async (articleData: NewArticleProps) => {
     try {
         console.log("요청 전송 시작: ", articleData);
-        const response = await baseFetch("/post/article", {
+        const response = await baseFetch("/map/post/article", {
             method: "POST",
             credentials: "include",
             headers: {

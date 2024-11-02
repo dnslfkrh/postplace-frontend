@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { MapProps, NewArticleProps } from '@/types/map/Props';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
-import { isSouthKorea } from '@/utils/map/geoValidation';
 import { useRouter } from 'next/navigation';
 import { ConfirmModal } from './modals/ConfirmModal';
 import { PostModal } from './modals/PostModal';
@@ -55,11 +54,12 @@ export const Map = ({ center, zoom }: MapProps) => {
                         // 지오코더 (좌표 => 주소 변환)
                         geocoderInstance.geocode({ location: position }, (results: google.maps.GeocoderResult[] | undefined, status: google.maps.GeocoderStatus) => {
                             if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
+                                const country = results[0].address_components.find((component) => component.types.includes('country'));
                                 const address = results[0].formatted_address;
                                 console.log('주소:', address);
 
                                 // 대한민국 주소인지 검증
-                                if (isSouthKorea(address)) {
+                                if (country?.short_name === 'KR') {
                                     setSelectedPosition(position);
                                 } else {
                                     // 클릭한 곳의 주소가 대한민국이 아닌 경우
