@@ -3,7 +3,7 @@
 import { Map } from "@/components/map/Map";
 import useUserLocation from "@/hooks/map/useUserLocation";
 
-export default function Home() {
+const Home = () => {
   const { location: userLocation, loading } = useUserLocation();
 
   if (loading) {
@@ -19,3 +19,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default Home;
