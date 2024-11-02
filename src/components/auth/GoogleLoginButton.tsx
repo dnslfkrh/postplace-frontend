@@ -6,6 +6,11 @@ export const GoogleLoginButton = () => {
     };
 
     return (
-        <button onClick={handleGoogleLogin}>Login with Google</button>
+        <img
+            src="/auth/GoogleAuthButton.png"
+            alt="Login with Google"
+            onClick={handleGoogleLogin}
+            className="w-48 cursor-pointer"
+        />
     );
 };
