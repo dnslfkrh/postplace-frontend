@@ -2,7 +2,7 @@
 
 export const PrivacyPolicy = () => {
     return (
-        <div className="flex items-center justify-center min-h-screen p-4 bg-gray-300">
+        <div className="flex items-center justify-center min-h-screen p-4 bg-gray-200">
             <div className="bg-white shadow-xl rounded-lg p-8 space-y-8">
                 <div className="text-center">
                     <h1 className="text-2xl font-bold mb-2">개인정보 처리 방침</h1>
