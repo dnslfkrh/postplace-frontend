@@ -2,7 +2,7 @@ import { baseFetch } from "../baseFetch";
 
 export const fetchForPins = async () => {
     try {
-        const response = await baseFetch("/map/read/pins", {
+        const response = await baseFetch("/map/get/pins", {
             method: "GET",
             credentials: "include",
             headers: {
