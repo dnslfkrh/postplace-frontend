@@ -4,7 +4,8 @@ import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { useRouter } from 'next/navigation';
 import { ConfirmModal } from './modals/ConfirmModal';
 import { PostModal } from './modals/PostModal';
-import { fetchForCreateArticle } from '@/apis/map/articles/fetchForCreateArticle';
+import { fetchForCreateArticle } from '@/apis/map/fetchForCreateArticle';
+import { fetchForPins } from '@/apis/map/fetchForPins';
 
 const MAP_OPTIONS = {
     disableDefaultUI: true,
@@ -46,6 +47,27 @@ export const Map = ({ center, zoom }: MapProps) => {
                 // 지오코더 초기화
                 const geocoderInstance = new google.maps.Geocoder();
                 setGeocoder(geocoderInstance);
+
+                // 서버에 있는 핀포인트 가져오기
+                try {
+                    const [pins] = await Promise.all([
+                        fetchForPins()
+                    ]);
+
+                    // 핀 저장
+                    pins.forEach((pin: { position: { latitude: number; longitude: number }, title: string }) => {
+                        addMarker(
+                            {
+                                lat: pin.position.latitude,
+                                lng: pin.position.longitude
+                            },
+                            pin.title
+                        );
+                    });
+
+                } catch (error) {
+                    console.error("핀포인드 가져오기 오류: ", error);
+                }
 
                 map.addListener('click', async (event: google.maps.MapMouseEvent) => {
                     if (event.latLng) {

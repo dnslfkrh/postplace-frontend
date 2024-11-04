@@ -24,4 +24,4 @@ export const fetchForCreateArticle = async (articleData: NewArticleProps) => {
         console.error("오류 발생: ", error);
         throw error;
     }
-}
+};
