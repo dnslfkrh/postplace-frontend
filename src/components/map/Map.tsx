@@ -21,10 +21,28 @@ export const Map = ({ center, zoom }: MapProps) => {
     const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
     const [markerCluster, setMarkerCluster] = useState<MarkerClusterer | null>(null);
-    // 클릭 후 위치 확인받기
     const [selectedPosition, setSelectedPosition] = useState<google.maps.LatLngLiteral | null>(null);
-    // 확인 후 게시물 작성하기
     const [showPostModal, setShowPostModal] = useState(false);
+
+    useEffect(() => {
+        const loadPins = async () => {
+            if (!mapInstance) return;
+
+            try {
+                const pins = await fetchForPins();
+                pins.forEach((pin: { latitude: number; longitude: number; title: string }) => {
+                    addMarker({
+                        lat: pin.latitude,
+                        lng: pin.longitude
+                    });
+                });
+            } catch (error) {
+                console.error("핀포인트 가져오기 오류: ", error);
+            }
+        };
+
+        loadPins();
+    }, [mapInstance]);
 
     useEffect(() => {
         const loadMap = async () => {
@@ -48,43 +66,19 @@ export const Map = ({ center, zoom }: MapProps) => {
                 const geocoderInstance = new google.maps.Geocoder();
                 setGeocoder(geocoderInstance);
 
-                // 서버에 있는 핀포인트 가져오기
-                try {
-                    const [pins] = await Promise.all([
-                        fetchForPins()
-                    ]);
-
-                    // 핀 저장
-                    pins.forEach((pin: { position: { latitude: number; longitude: number }, title: string }) => {
-                        addMarker(
-                            {
-                                lat: pin.position.latitude,
-                                lng: pin.position.longitude
-                            },
-                            pin.title
-                        );
-                    });
-
-                } catch (error) {
-                    console.error("핀포인드 가져오기 오류: ", error);
-                }
-
+                // 지도 클릭 이벤트 설정 :: 핀 게시물 추가
                 map.addListener('click', async (event: google.maps.MapMouseEvent) => {
                     if (event.latLng) {
                         const position = event.latLng.toJSON();
-
-                        // 지오코더 (좌표 => 주소 변환)
                         geocoderInstance.geocode({ location: position }, (results: google.maps.GeocoderResult[] | undefined, status: google.maps.GeocoderStatus) => {
                             if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
                                 const country = results[0].address_components.find((component) => component.types.includes('country'));
                                 const address = results[0].formatted_address;
                                 console.log('주소:', address);
 
-                                // 대한민국 주소인지 검증
                                 if (country?.short_name === 'KR') {
                                     setSelectedPosition(position);
                                 } else {
-                                    // 클릭한 곳의 주소가 대한민국이 아닌 경우
                                     alert("대한민국 영토를 선택해 주세요.");
                                 }
                             } else {
@@ -108,36 +102,36 @@ export const Map = ({ center, zoom }: MapProps) => {
         }
     }, [center, zoom]);
 
-    const addMarker = (position: { lat: number; lng: number }, title: string) => {
+    const addMarker = (position: { lat: number; lng: number }) => {
+        if (!mapInstance) {
+            console.error("Map instance is not initialized.");
+            return;
+        }
+
         const marker = new google.maps.marker.AdvancedMarkerElement({
-            position: position, // 위치는 articleData의 position을 사용
+            position: position,
             map: mapInstance,
-            title: title, // title은 postData.title을 사용
         });
 
-        // 게시물과 연결 필요, 현재는 제목만 로그 찍힘
         marker.addListener('click', () => {
-            console.log(title);
+            console.log("Marker clicked at:", position);
         });
 
         markerCluster?.addMarker(marker);
-        setMarkers((prevMarkers) => [...prevMarkers, marker]);
+        setMarkers((prevMarkers) => {
+            console.log("Previous markers:", prevMarkers);
+            return [...prevMarkers, marker];
+        });
     };
 
-    // Confirm Modal에서 확인을 누르면
     const handleConfirmSelectPlace = () => {
-        if (selectedPosition && mapInstance && markerCluster) {
+        if (selectedPosition) {
             setShowPostModal(true);
         }
     };
 
-    // 게시글 입력 후 등록 버튼 누르면
     const handleClosePostModal = async (postData?: { title: string, content: string }) => {
         if (postData && selectedPosition) {
-            console.log("게시물 등록", postData.title, postData.content, selectedPosition);
-            // addMarker(selectedPosition, postData.title, postData.content);
-
-            // 게시글 서버 전송 시도
             const articleData: NewArticleProps = {
                 title: postData.title,
                 content: postData.content,
@@ -149,18 +143,13 @@ export const Map = ({ center, zoom }: MapProps) => {
 
             try {
                 await fetchForCreateArticle(articleData);
-                addMarker(
-                    {
-                        lat: articleData.position.latitude,
-                        lng: articleData.position.longitude
-                    },
-                    articleData.title
-                );
-
+                addMarker({
+                    lat: articleData.position.latitude,
+                    lng: articleData.position.longitude
+                });
             } catch (error) {
-                console.log("게시글 생성 중 오류 발생: ", error)
+                console.error("게시글 생성 중 오류 발생: ", error);
             }
-
         }
         setShowPostModal(false);
         setSelectedPosition(null);
@@ -186,4 +175,4 @@ export const Map = ({ center, zoom }: MapProps) => {
             )}
         </div>
     );
-}
+};

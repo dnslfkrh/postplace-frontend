@@ -2,6 +2,7 @@ import { baseFetch } from "../baseFetch";
 
 export const fetchForPins = async () => {
     try {
+        console.log("요청 시작");
         const response = await baseFetch("/map/get/pins", {
             method: "GET",
             credentials: "include",
@@ -15,6 +16,7 @@ export const fetchForPins = async () => {
         }
 
         const data = await response.json();
+        console.log(data);
         return data;
 
     } catch (error) {
