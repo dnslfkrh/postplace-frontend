@@ -26,10 +26,34 @@ export const Map = ({ center, zoom }: MapProps) => {
 
     useEffect(() => {
         const loadPins = async () => {
-            if (!mapInstance) return;
-
+            if (!mapInstance) {
+                return;
+            }
+        
+            const bounds = mapInstance.getBounds();
+            if (!bounds) {
+                console.log(bounds, "Bounds is not initialized.");
+                return;
+            }
+        
+            const ne = bounds.getNorthEast();
+            const sw = bounds.getSouthWest();
+        
+            if (markers && markers.length > 0) {
+                markers.forEach((marker) => {
+                    marker.map = null;
+                });
+                setMarkers([]); 
+            }
+        
+            markerCluster?.clearMarkers();
+        
             try {
-                const pins = await fetchForPins();
+                const pins = await fetchForPins({
+                    northEast: { latitude: ne.lat(), longitude: ne.lng() },
+                    southWest: { latitude: sw.lat(), longitude: sw.lng() }
+                });
+        
                 pins.forEach((pin: { latitude: number; longitude: number; title: string }) => {
                     addMarker({
                         lat: pin.latitude,
@@ -40,8 +64,11 @@ export const Map = ({ center, zoom }: MapProps) => {
                 console.error("핀포인트 가져오기 오류: ", error);
             }
         };
+        
 
-        loadPins();
+        if (mapInstance) {
+            google.maps.event.addListener(mapInstance, 'idle', loadPins);
+        }
     }, [mapInstance]);
 
     useEffect(() => {
