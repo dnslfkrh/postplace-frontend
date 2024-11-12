@@ -16,9 +16,7 @@ export const fetchForCreateArticle = async (articleData: NewArticleProps) => {
             throw new Error("게시글 생성 실패");
         }
 
-        const data = await response.json();
-        return data;
-
+        return await response.json();
     } catch (error) {
         console.error("오류 발생: ", error);
         throw error;

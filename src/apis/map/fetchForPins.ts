@@ -22,10 +22,7 @@ export const fetchForPins = async (bounds: {
             throw new Error("핀 가져오기 실패..");
         }
 
-        const data = await response.json();
-        console.log(data);
-        return data;
-
+        return await response.json();
     } catch (error) {
         console.error("오류 발생: ", error);
         throw error;

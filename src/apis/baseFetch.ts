@@ -3,5 +3,5 @@ export const baseFetch = async (path: `${string}`, option?: RequestInit) => {
         ...option
     });
 
-    return response
+    return response;
 }
