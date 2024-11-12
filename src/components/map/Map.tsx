@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { MapProps, NewArticleProps } from '@/types/map/Props';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { useRouter } from 'next/navigation';
@@ -6,70 +6,24 @@ import { ConfirmModal } from './modals/ConfirmModal';
 import { PostModal } from './modals/PostModal';
 import { fetchForCreateArticle } from '@/apis/map/fetchForCreateArticle';
 import { fetchForPins } from '@/apis/map/fetchForPins';
+import { title } from 'process';
 
 const MAP_OPTIONS = {
     disableDefaultUI: true,
     zoomControl: true,
     clickableIcons: false,
     minZoom: 10,
-    maxZoom: 17
+    maxZoom: 20
 };
 
 export const Map = ({ center, zoom }: MapProps) => {
-    const router = useRouter();
+    const searchInputRef = useRef(null);
     const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
     const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
     const [markerCluster, setMarkerCluster] = useState<MarkerClusterer | null>(null);
     const [selectedPosition, setSelectedPosition] = useState<google.maps.LatLngLiteral | null>(null);
     const [showPostModal, setShowPostModal] = useState(false);
-
-    useEffect(() => {
-        const loadPins = async () => {
-            if (!mapInstance) {
-                return;
-            }
-        
-            const bounds = mapInstance.getBounds();
-            if (!bounds) {
-                console.log(bounds, "Bounds is not initialized.");
-                return;
-            }
-        
-            const ne = bounds.getNorthEast();
-            const sw = bounds.getSouthWest();
-        
-            if (markers && markers.length > 0) {
-                markers.forEach((marker) => {
-                    marker.map = null;
-                });
-                setMarkers([]); 
-            }
-        
-            markerCluster?.clearMarkers();
-        
-            try {
-                const pins = await fetchForPins({
-                    northEast: { latitude: ne.lat(), longitude: ne.lng() },
-                    southWest: { latitude: sw.lat(), longitude: sw.lng() }
-                });
-        
-                pins.forEach((pin: { latitude: number; longitude: number; title: string }) => {
-                    addMarker({
-                        lat: pin.latitude,
-                        lng: pin.longitude
-                    });
-                });
-            } catch (error) {
-                console.error("핀포인트 가져오기 오류: ", error);
-            }
-        };
-        
-
-        if (mapInstance) {
-            google.maps.event.addListener(mapInstance, 'idle', loadPins);
-        }
-    }, [mapInstance]);
 
     useEffect(() => {
         const loadMap = async () => {
@@ -83,6 +37,7 @@ export const Map = ({ center, zoom }: MapProps) => {
                     mapId: process.env.NEXT_PUBLIC_MAP_ID,
                     ...MAP_OPTIONS
                 });
+
                 setMapInstance(map);
 
                 // 클러스터 초기화
@@ -92,6 +47,22 @@ export const Map = ({ center, zoom }: MapProps) => {
                 // 지오코더 초기화
                 const geocoderInstance = new google.maps.Geocoder();
                 setGeocoder(geocoderInstance);
+
+                // place 검색
+                if (searchInputRef.current) {
+                    const autoComplete = new google.maps.places.Autocomplete(searchInputRef.current);
+                    autoComplete.bindTo('bounds', map);
+
+                    autoComplete.addListener('place_changed', () => {
+                        const place = autoComplete.getPlace();
+                        if (place.geometry) {
+                            map.setCenter(place.geometry.location);
+                            map.setZoom(18);
+                        } else {
+                            alert("검색 오류: 다시 시도해 주세요.");                            
+                        }
+                    })
+                }
 
                 // 지도 클릭 이벤트 설정 :: 핀 게시물 추가
                 map.addListener('click', async (event: google.maps.MapMouseEvent) => {
@@ -119,7 +90,7 @@ export const Map = ({ center, zoom }: MapProps) => {
 
         if (!window.google) {
             const script = document.createElement('script');
-            script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_API_KEY}&libraries=marker`;
+            script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_API_KEY}&libraries=places,marker`;
             script.async = true;
             script.defer = true;
             script.onload = loadMap;
@@ -128,6 +99,52 @@ export const Map = ({ center, zoom }: MapProps) => {
             loadMap();
         }
     }, [center, zoom]);
+
+    useEffect(() => {
+        const loadPins = async () => {
+            if (!mapInstance) {
+                return;
+            }
+
+            const bounds = mapInstance.getBounds();
+            if (!bounds) {
+                return;
+            }
+
+            const ne = bounds.getNorthEast();
+            const sw = bounds.getSouthWest();
+
+            if (markers && markers.length > 0) {
+                markers.forEach((marker) => {
+                    marker.map = null;
+                });
+                setMarkers([]);
+            }
+
+            markerCluster?.clearMarkers();
+
+            try {
+                const pins = await fetchForPins({
+                    northEast: { latitude: ne.lat(), longitude: ne.lng() },
+                    southWest: { latitude: sw.lat(), longitude: sw.lng() }
+                });
+
+                pins.forEach((pin: { latitude: number; longitude: number }) => {
+                    addMarker({
+                        lat: pin.latitude,
+                        lng: pin.longitude,
+                    });
+                });
+            } catch (error) {
+                console.error("핀포인트 가져오기 오류: ", error);
+            }
+        };
+
+
+        if (mapInstance) {
+            google.maps.event.addListener(mapInstance, 'idle', loadPins);
+        }
+    }, [mapInstance]);
 
     const addMarker = (position: { lat: number; lng: number }) => {
         if (!mapInstance) {
@@ -146,7 +163,6 @@ export const Map = ({ center, zoom }: MapProps) => {
 
         markerCluster?.addMarker(marker);
         setMarkers((prevMarkers) => {
-            console.log("Previous markers:", prevMarkers);
             return [...prevMarkers, marker];
         });
     };
@@ -184,7 +200,17 @@ export const Map = ({ center, zoom }: MapProps) => {
 
     return (
         <div className="h-full w-full relative">
-            <div id="map" className="h-full w-full" />
+            <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="검색할 장소를 입력하세요."
+                className="absolute top-2 left-2 z-10 p-2 bg-white border border-gray-300 rounded-md"
+            />
+
+            <div
+                id="map"
+                className="h-full w-full"
+            />
 
             {selectedPosition && (
                 <ConfirmModal
