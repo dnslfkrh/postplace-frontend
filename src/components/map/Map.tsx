@@ -27,9 +27,6 @@ export const Map = ({ center, zoom }: MapProps) => {
     const [showPostModal, setShowPostModal] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
 
-    const handleFocus = () => setIsFocused(true);
-    const handleBlur = () => setIsFocused(false);
-
     useEffect(() => {
         const loadMap = async () => {
             const { google } = window as any;
@@ -76,6 +73,10 @@ export const Map = ({ center, zoom }: MapProps) => {
 
                 // 지도 클릭 이벤트 설정 :: 핀 게시물 추가
                 map.addListener('click', async (event: google.maps.MapMouseEvent) => {
+                    if (isFocused) {
+                        return;
+                    }
+                    
                     if (event.latLng) {
                         const position = event.latLng.toJSON();
                         geocoderInstance.geocode({ location: position }, (results: google.maps.GeocoderResult[] | undefined, status: google.maps.GeocoderStatus) => {
@@ -206,6 +207,14 @@ export const Map = ({ center, zoom }: MapProps) => {
         }
         setShowPostModal(false);
         setSelectedPosition(null);
+    };
+
+    const handleFocus = () => {
+        setIsFocused(true);
+    };
+
+    const handleBlur = () => {
+        setIsFocused(false);
     };
 
     const handleClickBTN = () => {
