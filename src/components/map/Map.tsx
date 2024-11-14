@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { MapProps, NewArticleProps } from '@/types/map/Props';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
-import { useRouter } from 'next/navigation';
 import { ConfirmModal } from './modals/ConfirmModal';
 import { PostModal } from './modals/PostModal';
 import { fetchForCreateArticle } from '@/apis/map/fetchForCreateArticle';
 import { fetchForPins } from '@/apis/map/fetchForPins';
-import { title } from 'process';
 
 const MAP_OPTIONS = {
     disableDefaultUI: true,
@@ -210,6 +208,10 @@ export const Map = ({ center, zoom }: MapProps) => {
         setSelectedPosition(null);
     };
 
+    const handleClickBTN = () => {
+        alert("뭘봐")
+    };
+
     return (
         <div className="h-full w-full relative">
             <input
@@ -219,18 +221,17 @@ export const Map = ({ center, zoom }: MapProps) => {
                 onFocus={handleFocus}
                 onBlur={handleBlur}
                 className={`absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-3 bg-white border border-gray-300 shadow-md z-10 text-gray-900 transition-all duration-300
-                    ${isFocused ? 'top-[35%] w-1/2 rounded-sm focus:outline-none border-gray-700 bg-opacity-90' : 'top-[85%] w-1/5 rounded-xl bg-opacity-70'}`}
+                    ${isFocused
+                        ? 'top-[30%] w-4/5 sm:w-1/2 rounded-sm focus:outline-none border-gray-700 bg-opacity-90'
+                        : 'top-[80%] w-2/3 sm:w-1/5 rounded-xl bg-opacity-70'}`}
             />
+
 
             {!isFocused && (
                 <button
-                    className="absolute top-[85%] left-[calc(50%+8rem)] transform -translate-x-1/2 p-3 bg-gray-800 text-white rounded-full shadow-md z-20"
-                    style={{ width: '48px', height: '48px' }}
-                    onClick={() => {
-                        if (mapInstance && selectedPosition) {
-                            addMarker(selectedPosition);
-                        }
-                    }}
+                    className="absolute bottom-10 right-10 p-4 bg-gray-800 text-white text-xl rounded-full shadow-md z-10"
+                    style={{ width: '60px', height: '60px', fontSize: '36px' }}
+                    onClick={handleClickBTN}
                 >
                     +
                 </button>
