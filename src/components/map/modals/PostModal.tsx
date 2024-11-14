@@ -12,8 +12,8 @@ export const PostModal = ({ onClose, onSubmit }: PostModalProps) => {
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="fixed inset-0 bg-black/40" onClick={onClose} />
+        <div className="fixed inset-0 z-50 flex items-center justify-center"  onClick={onClose}>
+            <div className="fixed bg-black/40"/>
             <div className="relative bg-gray-200 p-6 rounded-lg shadow-lg w-11/12 max-w-md" onClick={(e) => e.stopPropagation()}>
                 <h2 className="text-xl font-semibold mb-4 text-gray-900 flex justify-center">게시물을 지도 위에 표시해 봐요</h2>
                 <form onSubmit={handleSubmit}>

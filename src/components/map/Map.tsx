@@ -10,20 +10,27 @@ import { title } from 'process';
 
 const MAP_OPTIONS = {
     disableDefaultUI: true,
-    zoomControl: true,
+    zoomControl: false,
+    streetViewControl: false,
+    mapTypeControl: false,
+    fullscreenControl: false,
     clickableIcons: false,
     minZoom: 10,
     maxZoom: 20
 };
 
 export const Map = ({ center, zoom }: MapProps) => {
-    const searchInputRef = useRef(null);
+    const searchInputRef = useRef<HTMLInputElement | null>(null);
     const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
     const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
     const [markerCluster, setMarkerCluster] = useState<MarkerClusterer | null>(null);
     const [selectedPosition, setSelectedPosition] = useState<google.maps.LatLngLiteral | null>(null);
     const [showPostModal, setShowPostModal] = useState(false);
+    const [isFocused, setIsFocused] = useState(false);
+
+    const handleFocus = () => setIsFocused(true);
+    const handleBlur = () => setIsFocused(false);
 
     useEffect(() => {
         const loadMap = async () => {
@@ -59,7 +66,12 @@ export const Map = ({ center, zoom }: MapProps) => {
                             map.setCenter(place.geometry.location);
                             map.setZoom(18);
                         } else {
-                            alert("검색 오류: 다시 시도해 주세요.");                            
+                            alert("검색 오류: 다시 시도해 주세요.");
+                        }
+
+                        if (searchInputRef.current) {
+                            searchInputRef.current.value = "";
+                            handleBlur();
                         }
                     })
                 }
@@ -203,9 +215,26 @@ export const Map = ({ center, zoom }: MapProps) => {
             <input
                 ref={searchInputRef}
                 type="text"
-                placeholder="검색할 장소를 입력하세요."
-                className="absolute top-2 left-2 z-10 p-2 bg-white border border-gray-300 rounded-md"
+                placeholder="어디로 가고 싶은가요?"
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                className={`absolute left-1/2 transform -translate-x-1/2 -translate-y-1/2 p-3 bg-white border border-gray-300 shadow-md z-10 text-gray-900 transition-all duration-300
+                    ${isFocused ? 'top-[35%] w-1/2 rounded-sm focus:outline-none border-gray-700 bg-opacity-90' : 'top-[85%] w-1/5 rounded-xl bg-opacity-70'}`}
             />
+
+            {!isFocused && (
+                <button
+                    className="absolute top-[85%] left-[calc(50%+8rem)] transform -translate-x-1/2 p-3 bg-gray-800 text-white rounded-full shadow-md z-20"
+                    style={{ width: '48px', height: '48px' }}
+                    onClick={() => {
+                        if (mapInstance && selectedPosition) {
+                            addMarker(selectedPosition);
+                        }
+                    }}
+                >
+                    +
+                </button>
+            )}
 
             <div
                 id="map"
