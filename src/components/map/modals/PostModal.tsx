@@ -1,13 +1,21 @@
 import { useState } from "react";
-import { PostModalProps } from "@/types/map/Props";
+import { Position, PostModalProps } from "@/types/map/Props";
 
-export const PostModal = ({ onClose, onSubmit }: PostModalProps) => {
+interface ExtendedPostModalProps extends PostModalProps {
+    position: Position;
+}
+
+export const PostModal = ({ onClose, onSubmit, position }: ExtendedPostModalProps) => {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit({ title, content });
+        onSubmit({ 
+            title, 
+            content, 
+            position
+        });
         onClose();
     }
 

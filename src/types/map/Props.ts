@@ -3,9 +3,9 @@ export interface MapProps {
     zoom: number;
 }
 
-export interface CoordinateProps {
-    lat: number;
-    lng: number;
+export interface Position {
+    latitude: number;
+    longitude: number;
 }
 
 export interface ConfirmModalProps {
@@ -19,6 +19,7 @@ export interface PostModalProps {
     onSubmit: (data: {
         title: string;
         content: string;
+        position: { latitude: number; longitude: number };
     }) => void;
 }
 

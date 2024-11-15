@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { MapProps, NewArticleProps } from '@/types/map/Props';
+import { MapProps, NewArticleProps, Position } from '@/types/map/Props';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { ConfirmModal } from './modals/ConfirmModal';
 import { PostModal } from './modals/PostModal';
 import { fetchForCreateArticle } from '@/apis/map/fetchForCreateArticle';
 import { fetchForPins } from '@/apis/map/fetchForPins';
+import { CurrentCenterPostModal } from './modals/CurrentCenterPostModal';
 
 const MAP_OPTIONS = {
     disableDefaultUI: true,
@@ -26,6 +27,7 @@ export const Map = ({ center, zoom }: MapProps) => {
     const [selectedPosition, setSelectedPosition] = useState<google.maps.LatLngLiteral | null>(null);
     const [showPostModal, setShowPostModal] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
+    const [showCurrentCenterModal, setShowCurrentCenterModal] = useState(false);
 
     useEffect(() => {
         const loadMap = async () => {
@@ -59,7 +61,7 @@ export const Map = ({ center, zoom }: MapProps) => {
                         const place = autoComplete.getPlace();
                         if (place.geometry) {
                             map.setCenter(place.geometry.location);
-                            map.setZoom(18);
+                            map.setZoom(20);
                         } else {
                             alert("검색 오류: 다시 시도해 주세요.");
                         }
@@ -76,7 +78,7 @@ export const Map = ({ center, zoom }: MapProps) => {
                     if (isFocused) {
                         return;
                     }
-                    
+
                     if (event.latLng) {
                         const position = event.latLng.toJSON();
                         geocoderInstance.geocode({ location: position }, (results: google.maps.GeocoderResult[] | undefined, status: google.maps.GeocoderStatus) => {
@@ -178,36 +180,42 @@ export const Map = ({ center, zoom }: MapProps) => {
         });
     };
 
-    const handleConfirmSelectPlace = () => {
-        if (selectedPosition) {
-            setShowPostModal(true);
-        }
+    // const handleConfirmSelectPlace = () => {
+    //     if (selectedPosition) {
+    //         setShowPostModal(true);
+    //     }
+    // };
+
+    const handleOpenPostModal = (position: google.maps.LatLngLiteral) => {
+        setSelectedPosition(position);
+        setShowPostModal(true);
     };
 
-    const handleClosePostModal = async (postData?: { title: string, content: string }) => {
-        if (postData && selectedPosition) {
-            const articleData: NewArticleProps = {
-                title: postData.title,
-                content: postData.content,
-                position: {
-                    latitude: selectedPosition.lat,
-                    longitude: selectedPosition.lng,
-                },
-            };
+    // const handleClosePostModal = async (postData?: { title: string, content: string }) => {
+    //     if (postData && selectedPosition) {
+    //         const articleData: NewArticleProps = {
+    //             title: postData.title,
+    //             content: postData.content,
+    //             position: {
+    //                 latitude: selectedPosition.lat,
+    //                 longitude: selectedPosition.lng,
+    //             },
+    //         };
 
-            try {
-                await fetchForCreateArticle(articleData);
-                addMarker({
-                    lat: articleData.position.latitude,
-                    lng: articleData.position.longitude
-                });
-            } catch (error) {
-                console.error("게시글 생성 중 오류 발생: ", error);
-            }
-        }
-        setShowPostModal(false);
-        setSelectedPosition(null);
-    };
+    //         try {
+    //             await fetchForCreateArticle(articleData);
+    //             addMarker({
+    //                 lat: articleData.position.latitude,
+    //                 lng: articleData.position.longitude
+    //             });
+    //             alert("마커가 등록되었습니다!");
+    //         } catch (error) {
+    //             console.error("게시글 생성 중 오류 발생: ", error);
+    //         }
+    //     }
+    //     setShowPostModal(false);
+    //     setSelectedPosition(null);
+    // };
 
     const handleFocus = () => {
         setIsFocused(true);
@@ -217,8 +225,36 @@ export const Map = ({ center, zoom }: MapProps) => {
         setIsFocused(false);
     };
 
-    const handleClickBTN = () => {
-        alert("뭘봐")
+    const handleClickCurrentPositionButton = () => {
+        setShowCurrentCenterModal(true);
+    };
+
+    const handleSubmitPost = async (postData: { title: string; content: string; position: Position }) => {
+        try {
+            console.log("게시물 등록:", postData);
+            if (postData) {
+                const articleData: NewArticleProps = {
+                    title: postData.title,
+                    content: postData.content,
+                    position: {
+                        latitude: postData.position.latitude,
+                        longitude: postData.position.longitude,
+                    },
+                };
+                await fetchForCreateArticle(postData);
+                addMarker({
+                    lat: articleData.position.latitude,
+                    lng: articleData.position.longitude
+                });
+                alert("마커가 등록되었습니다!");
+            }
+        } catch (error) {
+            console.error("게시물 등록 중 오류 발생:", error);
+        }
+    }
+
+    const handleCloseCurrentCenterModal = () => {
+        setShowCurrentCenterModal(false);
     };
 
     return (
@@ -240,7 +276,7 @@ export const Map = ({ center, zoom }: MapProps) => {
                 <button
                     className="absolute bottom-10 right-10 p-4 bg-gray-800 text-white text-xl rounded-full shadow-md z-10"
                     style={{ width: '60px', height: '60px', fontSize: '36px' }}
-                    onClick={handleClickBTN}
+                    onClick={handleClickCurrentPositionButton}
                 >
                     +
                 </button>
@@ -251,18 +287,33 @@ export const Map = ({ center, zoom }: MapProps) => {
                 className="h-full w-full"
             />
 
-            {selectedPosition && (
+            {selectedPosition && !showPostModal && (
                 <ConfirmModal
-                    message="핀포인트 추가하기"
-                    onConfirm={handleConfirmSelectPlace}
+                    message="이 위치에 마커 추가하기"
+                    onConfirm={() => handleOpenPostModal(selectedPosition)}
                     onCancel={() => setSelectedPosition(null)}
                 />
             )}
 
-            {showPostModal && (
+            {showPostModal && selectedPosition && (
                 <PostModal
-                    onClose={() => handleClosePostModal()}
-                    onSubmit={handleClosePostModal}
+                    onClose={() => {
+                        setShowPostModal(false);
+                        setSelectedPosition(null);
+                    }}
+                    onSubmit={(postData) => handleSubmitPost(postData)}
+                    position={{
+                        latitude: selectedPosition.lat,
+                        longitude: selectedPosition.lng,
+                    }}
+                />
+            )}
+
+            {showCurrentCenterModal && (
+                <CurrentCenterPostModal
+                    onClose={handleCloseCurrentCenterModal}
+                    onSubmit={handleSubmitPost}
+                    mapInstance={mapInstance}
                 />
             )}
         </div>
