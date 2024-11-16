@@ -153,7 +153,6 @@ export const Map = ({ center, zoom }: MapProps) => {
             }
         };
 
-
         if (mapInstance) {
             google.maps.event.addListener(mapInstance, 'idle', loadPins);
         }
@@ -180,42 +179,10 @@ export const Map = ({ center, zoom }: MapProps) => {
         });
     };
 
-    // const handleConfirmSelectPlace = () => {
-    //     if (selectedPosition) {
-    //         setShowPostModal(true);
-    //     }
-    // };
-
     const handleOpenPostModal = (position: google.maps.LatLngLiteral) => {
         setSelectedPosition(position);
         setShowPostModal(true);
     };
-
-    // const handleClosePostModal = async (postData?: { title: string, content: string }) => {
-    //     if (postData && selectedPosition) {
-    //         const articleData: NewArticleProps = {
-    //             title: postData.title,
-    //             content: postData.content,
-    //             position: {
-    //                 latitude: selectedPosition.lat,
-    //                 longitude: selectedPosition.lng,
-    //             },
-    //         };
-
-    //         try {
-    //             await fetchForCreateArticle(articleData);
-    //             addMarker({
-    //                 lat: articleData.position.latitude,
-    //                 lng: articleData.position.longitude
-    //             });
-    //             alert("마커가 등록되었습니다!");
-    //         } catch (error) {
-    //             console.error("게시글 생성 중 오류 발생: ", error);
-    //         }
-    //     }
-    //     setShowPostModal(false);
-    //     setSelectedPosition(null);
-    // };
 
     const handleFocus = () => {
         setIsFocused(true);
