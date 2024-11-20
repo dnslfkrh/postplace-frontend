@@ -1,12 +1,8 @@
+import { Position } from "@/types/map/Props";
 import { baseFetch } from "../baseFetch";
 
-export const fetchForPins = async (bounds: {
-    northEast: { latitude: number; longitude: number },
-    southWest: { latitude: number; longitude: number }
-}) => {
+export const fetchForPins = async (bounds: { northEast: Position, southWest: Position }) => {
     try {
-        console.log("요청 시작");
-
         const { northEast, southWest } = bounds;
         const query = `?neLat=${northEast.latitude}&neLng=${northEast.longitude}&swLat=${southWest.latitude}&swLng=${southWest.longitude}`;
 

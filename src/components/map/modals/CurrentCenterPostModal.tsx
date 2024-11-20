@@ -77,7 +77,7 @@ export const CurrentCenterPostModal = ({ onClose, onSubmit, mapInstance }: Curre
                 onClick={(e) => e.stopPropagation()}
             >
                 <h2 className="text-xl font-semibold mb-4 text-gray-900 flex justify-center">
-                    현재 화면 중앙에 게시물 추가하기
+                    현재 화면에 게시물 추가하기
                 </h2>
                 <form onSubmit={handleSubmit}>
                     <input

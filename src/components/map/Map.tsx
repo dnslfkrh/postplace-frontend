@@ -62,6 +62,7 @@ export const Map = ({ center, zoom }: MapProps) => {
                         if (place.geometry) {
                             map.setCenter(place.geometry.location);
                             map.setZoom(20);
+                            // 위치 확용용 임시 마커 보여줘여ㅑ됨
                         } else {
                             alert("검색 오류: 다시 시도해 주세요.");
                         }
