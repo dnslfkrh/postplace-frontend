@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { MapProps, NewArticleProps, Position } from '@/types/map/Props';
+import { MapProps, NewArticleProps, PinProps, Position } from '@/types/map/Props';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { ConfirmModal } from './modals/ConfirmModal';
 import { PostModal } from './modals/PostModal';
@@ -143,10 +143,14 @@ export const Map = ({ center, zoom }: MapProps) => {
                     southWest: { latitude: sw.lat(), longitude: sw.lng() }
                 });
 
-                pins.forEach((pin: { latitude: number; longitude: number }) => {
+                pins.forEach((pin: PinProps) => {
                     addMarker({
-                        lat: pin.latitude,
-                        lng: pin.longitude,
+                        id: pin.id,
+                        title: pin.title,
+                        content: pin.content,
+                        latitude: pin.latitude,
+                        longitude: pin.longitude,
+                        createdAt: pin.createdAt,
                     });
                 });
             } catch (error) {
@@ -159,19 +163,30 @@ export const Map = ({ center, zoom }: MapProps) => {
         }
     }, [mapInstance]);
 
-    const addMarker = (position: { lat: number; lng: number }) => {
+    const addMarker = (pin: PinProps) => {
         if (!mapInstance) {
             console.error("Map instance is not initialized.");
             return;
         }
 
+        console.log("Latitude:", pin.latitude, "Longitude:", pin.longitude);  // 값 확인
+
+        // LatLng 객체 생성
+        const position = new google.maps.LatLng(pin.latitude, pin.longitude);
+
         const marker = new google.maps.marker.AdvancedMarkerElement({
-            position: position,
+            position: position,  // LatLng 객체로 전달
             map: mapInstance,
         });
 
         marker.addListener('click', () => {
             console.log("Marker clicked at:", position);
+            console.log("제목: ", pin.title);
+            console.log("내용: ", pin.content);
+            console.log("생성일: ", pin.createdAt);
+            console.log("작성: ", pin.id);
+
+            // 모달이나 뭐 그런거 띄우기
         });
 
         markerCluster?.addMarker(marker);
@@ -197,7 +212,7 @@ export const Map = ({ center, zoom }: MapProps) => {
         setShowCurrentCenterModal(true);
     };
 
-    const handleSubmitPost = async (postData: { title: string; content: string; position: Position }) => {
+    const handleSubmitPost = async (postData: NewArticleProps) => {
         try {
             console.log("게시물 등록:", postData);
             if (postData) {
@@ -209,11 +224,17 @@ export const Map = ({ center, zoom }: MapProps) => {
                         longitude: postData.position.longitude,
                     },
                 };
-                await fetchForCreateArticle(postData);
+                const pin = await fetchForCreateArticle(articleData);
+
                 addMarker({
-                    lat: articleData.position.latitude,
-                    lng: articleData.position.longitude
+                    id: pin.id,
+                    title: pin.title,
+                    content: pin.content,
+                    latitude: pin.latitude,
+                    longitude: pin.longitude,
+                    createdAt: pin.createdAt,
                 });
+
                 alert("마커가 등록되었습니다!");
             }
         } catch (error) {

@@ -28,3 +28,12 @@ export interface NewArticleProps {
     content: string;
     position: { latitude: number; longitude: number};
 }
+
+export interface PinProps {
+    id: number;
+    title: string;
+    content: string;
+    latitude: number;
+    longitude: number;
+    createdAt: string;
+}
