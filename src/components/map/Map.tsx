@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { MapProps, NewArticleProps, PinProps, Position } from '@/types/map/Props';
+import { MapProps, NewArticleProps, PinProps } from '@/types/map/Props';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { ConfirmModal } from './modals/ConfirmModal';
 import { PostModal } from './modals/PostModal';
@@ -146,6 +146,7 @@ export const Map = ({ center, zoom }: MapProps) => {
                 pins.forEach((pin: PinProps) => {
                     addMarker({
                         id: pin.id,
+                        userId: pin.userId,
                         title: pin.title,
                         content: pin.content,
                         latitude: pin.latitude,
@@ -169,13 +170,12 @@ export const Map = ({ center, zoom }: MapProps) => {
             return;
         }
 
-        console.log("Latitude:", pin.latitude, "Longitude:", pin.longitude);  // 값 확인
+        console.log("Latitude:", pin.latitude, "Longitude:", pin.longitude);
 
-        // LatLng 객체 생성
         const position = new google.maps.LatLng(pin.latitude, pin.longitude);
 
         const marker = new google.maps.marker.AdvancedMarkerElement({
-            position: position,  // LatLng 객체로 전달
+            position: position,
             map: mapInstance,
         });
 
@@ -184,9 +184,10 @@ export const Map = ({ center, zoom }: MapProps) => {
             console.log("제목: ", pin.title);
             console.log("내용: ", pin.content);
             console.log("생성일: ", pin.createdAt);
-            console.log("작성: ", pin.id);
+            console.log("작성: ", pin.userId);
 
             // 모달이나 뭐 그런거 띄우기
+            // pin.id로 상세 페이지로 이동
         });
 
         markerCluster?.addMarker(marker);
@@ -228,6 +229,7 @@ export const Map = ({ center, zoom }: MapProps) => {
 
                 addMarker({
                     id: pin.id,
+                    userId: pin.userId,
                     title: pin.title,
                     content: pin.content,
                     latitude: pin.latitude,

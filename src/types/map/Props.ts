@@ -31,6 +31,7 @@ export interface NewArticleProps {
 
 export interface PinProps {
     id: number;
+    userId: number;
     title: string;
     content: string;
     latitude: number;
