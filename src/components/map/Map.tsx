@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { MapProps, NewArticleProps, PinProps } from '@/types/map/Props';
+import { MapProps, NewArticleProps, PinPropsInMap } from '@/types/map/Props';
 import { MarkerClusterer } from '@googlemaps/markerclusterer';
 import { ConfirmModal } from './modals/ConfirmModal';
 import { PostModal } from './modals/PostModal';
-import { fetchForCreateArticle } from '@/apis/map/fetchForCreateArticle';
+import { fetchToCreateArticle } from '@/apis/map/fetchToCreateArticle';
 import { fetchForPins } from '@/apis/map/fetchForPins';
 import { CurrentCenterPostModal } from './modals/CurrentCenterPostModal';
+import { PinTitleModal } from './modals/PinTitleModal';
 
 const MAP_OPTIONS = {
     disableDefaultUI: true,
@@ -25,9 +26,12 @@ export const Map = ({ center, zoom }: MapProps) => {
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
     const [markerCluster, setMarkerCluster] = useState<MarkerClusterer | null>(null);
     const [selectedPosition, setSelectedPosition] = useState<google.maps.LatLngLiteral | null>(null);
+    const [selectedPin, setSelectedPin] = useState<PinPropsInMap | null>(null);
     const [showPostModal, setShowPostModal] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [showCurrentCenterModal, setShowCurrentCenterModal] = useState(false);
+    const [pinTitleModal, showPinTitleModal] = useState(false);
+    const [modalPosition, setModalPosition] = useState<{ x: number, y: number } | null>(null);
 
     useEffect(() => {
         const loadMap = async () => {
@@ -99,6 +103,11 @@ export const Map = ({ center, zoom }: MapProps) => {
                         });
                     }
                 });
+
+                map.addListener('dragstart', () => {
+                    showPinTitleModal(false);
+                    setSelectedPin(null);
+                });
             }
         };
 
@@ -128,6 +137,7 @@ export const Map = ({ center, zoom }: MapProps) => {
             const ne = bounds.getNorthEast();
             const sw = bounds.getSouthWest();
 
+            // 기존 화면의 마커 제거
             if (markers && markers.length > 0) {
                 markers.forEach((marker) => {
                     marker.map = null;
@@ -138,21 +148,16 @@ export const Map = ({ center, zoom }: MapProps) => {
             markerCluster?.clearMarkers();
 
             try {
+                showPinTitleModal(false);
+                setSelectedPin(null);
+
                 const pins = await fetchForPins({
                     northEast: { latitude: ne.lat(), longitude: ne.lng() },
                     southWest: { latitude: sw.lat(), longitude: sw.lng() }
                 });
 
-                pins.forEach((pin: PinProps) => {
-                    addMarker({
-                        id: pin.id,
-                        userId: pin.userId,
-                        title: pin.title,
-                        content: pin.content,
-                        latitude: pin.latitude,
-                        longitude: pin.longitude,
-                        createdAt: pin.createdAt,
-                    });
+                pins.forEach((pin: PinPropsInMap) => {
+                    addMarker(pin);
                 });
             } catch (error) {
                 console.error("핀포인트 가져오기 오류: ", error);
@@ -164,7 +169,7 @@ export const Map = ({ center, zoom }: MapProps) => {
         }
     }, [mapInstance]);
 
-    const addMarker = (pin: PinProps) => {
+    const addMarker = (pin: PinPropsInMap) => {
         if (!mapInstance) {
             console.error("Map instance is not initialized.");
             return;
@@ -182,12 +187,19 @@ export const Map = ({ center, zoom }: MapProps) => {
         marker.addListener('click', () => {
             console.log("Marker clicked at:", position);
             console.log("제목: ", pin.title);
-            console.log("내용: ", pin.content);
-            console.log("생성일: ", pin.createdAt);
-            console.log("작성: ", pin.userId);
 
             // 모달이나 뭐 그런거 띄우기
             // pin.id로 상세 페이지로 이동
+
+            setSelectedPin(pin);
+
+            // 위치가 이상하다..
+            setModalPosition({
+                x: pin.latitude,
+                y: pin.longitude
+            });
+
+            showPinTitleModal(true);
         });
 
         markerCluster?.addMarker(marker);
@@ -225,17 +237,10 @@ export const Map = ({ center, zoom }: MapProps) => {
                         longitude: postData.position.longitude,
                     },
                 };
-                const pin = await fetchForCreateArticle(articleData);
 
-                addMarker({
-                    id: pin.id,
-                    userId: pin.userId,
-                    title: pin.title,
-                    content: pin.content,
-                    latitude: pin.latitude,
-                    longitude: pin.longitude,
-                    createdAt: pin.createdAt,
-                });
+                const pin: PinPropsInMap = await fetchToCreateArticle(articleData);
+
+                addMarker(pin);
 
                 alert("마커가 등록되었습니다!");
             }
@@ -250,6 +255,7 @@ export const Map = ({ center, zoom }: MapProps) => {
 
     return (
         <div className="h-full w-full relative">
+            {/* 검색 */}
             <input
                 ref={searchInputRef}
                 type="text"
@@ -262,22 +268,13 @@ export const Map = ({ center, zoom }: MapProps) => {
                         : 'top-[80%] w-2/3 sm:w-1/5 rounded-xl bg-opacity-70'}`}
             />
 
-
-            {!isFocused && (
-                <button
-                    className="absolute bottom-10 right-10 p-4 bg-gray-800 text-white text-xl rounded-full shadow-md z-10"
-                    style={{ width: '60px', height: '60px', fontSize: '36px' }}
-                    onClick={handleClickCurrentPositionButton}
-                >
-                    +
-                </button>
-            )}
-
+            {/* 지도 */}
             <div
                 id="map"
                 className="h-full w-full"
             />
 
+            {/* 지도 클릭 후 현재 위치 확인 모달 */}
             {selectedPosition && !showPostModal && (
                 <ConfirmModal
                     message="이 위치에 마커 추가하기"
@@ -286,6 +283,7 @@ export const Map = ({ center, zoom }: MapProps) => {
                 />
             )}
 
+            {/* 지도 클릭 후 게시물 작성 모달 */}
             {showPostModal && selectedPosition && (
                 <PostModal
                     onClose={() => {
@@ -300,12 +298,46 @@ export const Map = ({ center, zoom }: MapProps) => {
                 />
             )}
 
+            {/* 현재 위치에 마커 추가하는 팝업 버튼 */}
+            {!isFocused && (
+                <button
+                    className="absolute bottom-10 right-10 p-4 bg-gray-800 text-white text-xl rounded-full shadow-md z-10"
+                    style={{ width: '60px', height: '60px', fontSize: '36px' }}
+                    onClick={handleClickCurrentPositionButton}
+                >
+                    +
+                </button>
+            )}
+
+            {/* 현재 위치에 게시물 작성하는 모달 */}
             {showCurrentCenterModal && (
                 <CurrentCenterPostModal
                     onClose={handleCloseCurrentCenterModal}
                     onSubmit={handleSubmitPost}
                     mapInstance={mapInstance}
                 />
+            )}
+
+
+            {/* 마커 클릭하면 게시물 제목 모달 */}
+            {showPinTitleModal && selectedPin && modalPosition && (
+                <div
+                    style={{
+                        position: 'absolute',
+                        left: `${modalPosition.x}px`,
+                        top: `${modalPosition.y}px`,
+                        transform: 'translate(-50%, -100%)',
+                        zIndex: 50
+                    }}
+                >
+                    <PinTitleModal
+                        pin={selectedPin}
+                        onClose={() => {
+                            showPinTitleModal(false);
+                            setSelectedPin(null);
+                        }}
+                    />
+                </div>
             )}
         </div>
     );

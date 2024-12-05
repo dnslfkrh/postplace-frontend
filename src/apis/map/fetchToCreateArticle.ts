@@ -1,7 +1,7 @@
 import { baseFetch } from "@/apis/baseFetch";
 import { NewArticleProps } from "@/types/map/Props"
 
-export const fetchForCreateArticle = async (articleData: NewArticleProps) => {
+export const fetchToCreateArticle = async (articleData: NewArticleProps) => {
     try {
         const response = await baseFetch("/map/post/article", {
             method: "POST",

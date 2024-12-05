@@ -29,12 +29,9 @@ export interface NewArticleProps {
     position: { latitude: number; longitude: number};
 }
 
-export interface PinProps {
+export interface PinPropsInMap {
     id: number;
-    userId: number;
     title: string;
-    content: string;
     latitude: number;
     longitude: number;
-    createdAt: string;
 }
