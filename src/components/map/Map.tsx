@@ -6,7 +6,6 @@ import { PostModal } from './modals/PostModal';
 import { fetchToCreateArticle } from '@/apis/map/fetchToCreateArticle';
 import { fetchForPins } from '@/apis/map/fetchForPins';
 import { CurrentCenterPostModal } from './modals/CurrentCenterPostModal';
-import { PinTitleModal } from './modals/PinTitleModal';
 
 const MAP_OPTIONS = {
     disableDefaultUI: true,
@@ -21,6 +20,7 @@ const MAP_OPTIONS = {
 
 export const Map = ({ center, zoom }: MapProps) => {
     const searchInputRef = useRef<HTMLInputElement | null>(null);
+    const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
     const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
     const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
@@ -31,7 +31,6 @@ export const Map = ({ center, zoom }: MapProps) => {
     const [isFocused, setIsFocused] = useState(false);
     const [showCurrentCenterModal, setShowCurrentCenterModal] = useState(false);
     const [pinTitleModal, showPinTitleModal] = useState(false);
-    const [modalPosition, setModalPosition] = useState<{ x: number, y: number } | null>(null);
 
     useEffect(() => {
         const loadMap = async () => {
@@ -105,8 +104,9 @@ export const Map = ({ center, zoom }: MapProps) => {
                 });
 
                 map.addListener('dragstart', () => {
-                    showPinTitleModal(false);
-                    setSelectedPin(null);
+                    if (infoWindowRef.current) {
+                        infoWindowRef.current.close();
+                    }
                 });
             }
         };
@@ -185,21 +185,19 @@ export const Map = ({ center, zoom }: MapProps) => {
         });
 
         marker.addListener('click', () => {
-            console.log("Marker clicked at:", position);
-            console.log("제목: ", pin.title);
-
-            // 모달이나 뭐 그런거 띄우기
-            // pin.id로 상세 페이지로 이동
-
             setSelectedPin(pin);
 
-            // 위치가 이상하다..
-            setModalPosition({
-                x: pin.latitude,
-                y: pin.longitude
+            if (infoWindowRef.current) {
+                infoWindowRef.current.close();
+            }
+
+            infoWindowRef.current = new google.maps.InfoWindow({
+                content: `<h3 class="text-sm font-semibold text-gray-800 whitespace-nowrap">${pin.title}</h3>`,
+                position: position,
+                pixelOffset: new google.maps.Size(0, -45),
             });
 
-            showPinTitleModal(true);
+            infoWindowRef.current.open(mapInstance);
         });
 
         markerCluster?.addMarker(marker);
@@ -316,28 +314,6 @@ export const Map = ({ center, zoom }: MapProps) => {
                     onSubmit={handleSubmitPost}
                     mapInstance={mapInstance}
                 />
-            )}
-
-
-            {/* 마커 클릭하면 게시물 제목 모달 */}
-            {showPinTitleModal && selectedPin && modalPosition && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        left: `${modalPosition.x}px`,
-                        top: `${modalPosition.y}px`,
-                        transform: 'translate(-50%, -100%)',
-                        zIndex: 50
-                    }}
-                >
-                    <PinTitleModal
-                        pin={selectedPin}
-                        onClose={() => {
-                            showPinTitleModal(false);
-                            setSelectedPin(null);
-                        }}
-                    />
-                </div>
             )}
         </div>
     );
