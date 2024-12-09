@@ -6,6 +6,7 @@ import { PostModal } from './modals/PostModal';
 import { fetchToCreateArticle } from '@/apis/map/fetchToCreateArticle';
 import { fetchForPins } from '@/apis/map/fetchForPins';
 import { CurrentCenterPostModal } from './modals/CurrentCenterPostModal';
+import { fetchForSinglePin } from '@/apis/map/fetchForSinglePin';
 
 const MAP_OPTIONS = {
     disableDefaultUI: true,
@@ -104,9 +105,7 @@ export const Map = ({ center, zoom }: MapProps) => {
                 });
 
                 map.addListener('dragstart', () => {
-                    if (infoWindowRef.current) {
-                        infoWindowRef.current.close();
-                    }
+                    removeMarkerInfoWindow();
                 });
             }
         };
@@ -184,20 +183,10 @@ export const Map = ({ center, zoom }: MapProps) => {
             map: mapInstance,
         });
 
+        // 마커 클릭 이벤트
         marker.addListener('click', () => {
             setSelectedPin(pin);
-
-            if (infoWindowRef.current) {
-                infoWindowRef.current.close();
-            }
-
-            infoWindowRef.current = new google.maps.InfoWindow({
-                content: `<h3 class="text-sm font-semibold text-gray-800 whitespace-nowrap">${pin.title}</h3>`,
-                position: position,
-                pixelOffset: new google.maps.Size(0, -45),
-            });
-
-            infoWindowRef.current.open(mapInstance);
+            openMarkerTitleInfoWindow(pin, position, mapInstance);
         });
 
         markerCluster?.addMarker(marker);
@@ -206,26 +195,42 @@ export const Map = ({ center, zoom }: MapProps) => {
         });
     };
 
-    const handleOpenPostModal = (position: google.maps.LatLngLiteral) => {
-        setSelectedPosition(position);
-        setShowPostModal(true);
+    const openMarkerTitleInfoWindow = (pin: PinPropsInMap, position: google.maps.LatLng, mapInstance: google.maps.Map) => {
+        removeMarkerInfoWindow();
+
+        const content = `<h3 class="text-sm font-semibold text-gray-800 whitespace-nowrap hover:underline cursor-pointer" id="infoWindowTitle">${pin.title}</h3>`;
+
+        infoWindowRef.current = new google.maps.InfoWindow({
+            content: content,
+            position: position,
+            pixelOffset: new google.maps.Size(0, -45),
+        });
+
+        infoWindowRef.current.open(mapInstance);
+
+        setTimeout(async () => {
+            const titleElement = document.getElementById("infoWindowTitle");
+            if (titleElement) {
+                titleElement.addEventListener('click', async () => {
+
+                    // TODO:
+                    // 핀 게시물 보여줄 모달이든 페이지로 이동
+                    // 그리고 거기에서 아래 함수로 게시물 요청
+                    const pinData = await fetchForSinglePin(pin.id);
+                    console.log(pinData);
+                });
+            }
+        }, 1); // DOM 렌더링 후에 이벤트를 등록
     };
 
-    const handleFocus = () => {
-        setIsFocused(true);
-    };
-
-    const handleBlur = () => {
-        setIsFocused(false);
-    };
-
-    const handleClickCurrentPositionButton = () => {
-        setShowCurrentCenterModal(true);
+    const removeMarkerInfoWindow = () => {
+        if (infoWindowRef.current) {
+            infoWindowRef.current.close();
+        }
     };
 
     const handleSubmitPost = async (postData: NewArticleProps) => {
         try {
-            console.log("게시물 등록:", postData);
             if (postData) {
                 const articleData: NewArticleProps = {
                     title: postData.title,
@@ -245,7 +250,24 @@ export const Map = ({ center, zoom }: MapProps) => {
         } catch (error) {
             console.error("게시물 등록 중 오류 발생:", error);
         }
-    }
+    };
+
+    const handleOpenPostModal = (position: google.maps.LatLngLiteral) => {
+        setSelectedPosition(position);
+        setShowPostModal(true);
+    };
+
+    const handleFocus = () => {
+        setIsFocused(true);
+    };
+
+    const handleBlur = () => {
+        setIsFocused(false);
+    };
+
+    const handleClickCurrentPositionButton = () => {
+        setShowCurrentCenterModal(true);
+    };
 
     const handleCloseCurrentCenterModal = () => {
         setShowCurrentCenterModal(false);

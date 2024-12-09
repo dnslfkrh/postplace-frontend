@@ -15,7 +15,7 @@ export const fetchForPins = async (bounds: { northEast: Position, southWest: Pos
         });
 
         if (!response.ok) {
-            throw new Error("핀 가져오기 실패..");
+            throw new Error("화면에 표시될 핀 가져오기 실패..");
         }
 
         return await response.json();
