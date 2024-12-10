@@ -7,6 +7,7 @@ import { fetchToCreateArticle } from '@/apis/map/fetchToCreateArticle';
 import { fetchForPins } from '@/apis/map/fetchForPins';
 import { CurrentCenterPostModal } from './modals/CurrentCenterPostModal';
 import { fetchForSinglePin } from '@/apis/map/fetchForSinglePin';
+import SinglePinModal from './modals/SinglePinModal';
 
 const MAP_OPTIONS = {
     disableDefaultUI: true,
@@ -32,6 +33,7 @@ export const Map = ({ center, zoom }: MapProps) => {
     const [isFocused, setIsFocused] = useState(false);
     const [showCurrentCenterModal, setShowCurrentCenterModal] = useState(false);
     const [pinTitleModal, showPinTitleModal] = useState(false);
+    const [showSinglePinModal, setShowSinglePinModal] = useState(false);
 
     useEffect(() => {
         const loadMap = async () => {
@@ -212,15 +214,10 @@ export const Map = ({ center, zoom }: MapProps) => {
             const titleElement = document.getElementById("infoWindowTitle");
             if (titleElement) {
                 titleElement.addEventListener('click', async () => {
-
-                    // TODO:
-                    // 핀 게시물 보여줄 모달이든 페이지로 이동
-                    // 그리고 거기에서 아래 함수로 게시물 요청
-                    const pinData = await fetchForSinglePin(pin.id);
-                    console.log(pinData);
+                    setShowSinglePinModal(true);
                 });
             }
-        }, 1); // DOM 렌더링 후에 이벤트를 등록
+        }, 0); // DOM 렌더링 후에 이벤트를 등록
     };
 
     const removeMarkerInfoWindow = () => {
@@ -337,6 +334,17 @@ export const Map = ({ center, zoom }: MapProps) => {
                     mapInstance={mapInstance}
                 />
             )}
+
+            {/* SinglePinModal 표시 */}
+            <div className="h-full w-full relative">
+                <div id="map" className="h-full w-full" />
+                {selectedPin && showSinglePinModal && (
+                    <SinglePinModal
+                        pinId={selectedPin.id}
+                        onClose={() => setShowSinglePinModal(false)}
+                    />
+                )}
+            </div>
         </div>
     );
 };

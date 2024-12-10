@@ -35,3 +35,12 @@ export interface PinPropsInMap {
     latitude: number;
     longitude: number;
 }
+
+export interface SinglePinInfoProps {
+    userId: number;
+    title: string;
+    content: string;
+    createdAt: string;
+    isUpdated: boolean;
+    updatedAt: string; // isUpdated가 true일 때만 값이 존재 (아니면 null)
+};
