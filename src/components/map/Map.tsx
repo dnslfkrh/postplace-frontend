@@ -286,10 +286,7 @@ export const Map = ({ center, zoom }: MapProps) => {
             />
 
             {/* 지도 */}
-            <div
-                id="map"
-                className="h-full w-full"
-            />
+            <div id="map" className="h-full w-full" />
 
             {/* 지도 클릭 후 현재 위치 확인 모달 */}
             {selectedPosition && !showPostModal && (
@@ -336,15 +333,12 @@ export const Map = ({ center, zoom }: MapProps) => {
             )}
 
             {/* SinglePinModal 표시 */}
-            <div className="h-full w-full relative">
-                <div id="map" className="h-full w-full" />
-                {selectedPin && showSinglePinModal && (
-                    <SinglePinModal
-                        pinId={selectedPin.id}
-                        onClose={() => setShowSinglePinModal(false)}
-                    />
-                )}
-            </div>
+            {selectedPin && showSinglePinModal && (
+                <SinglePinModal
+                    pinId={selectedPin.id}
+                    onClose={() => setShowSinglePinModal(false)}
+                />
+            )}
         </div>
     );
 };
