@@ -6,7 +6,6 @@ import { PostModal } from './modals/PostModal';
 import { fetchToCreateArticle } from '@/apis/map/fetchToCreateArticle';
 import { fetchForPins } from '@/apis/map/fetchForPins';
 import { CurrentCenterPostModal } from './modals/CurrentCenterPostModal';
-import { fetchForSinglePin } from '@/apis/map/fetchForSinglePin';
 import SinglePinModal from './modals/SinglePinModal';
 
 const MAP_OPTIONS = {
@@ -37,7 +36,11 @@ export const Map = ({ center, zoom }: MapProps) => {
 
     useEffect(() => {
         const loadMap = async () => {
-            const { google } = window as any;
+            const google: typeof window.google = window.google;
+            if (!google) {
+                alert("Google Maps API를 불러오는 중 오류가 발생했습니다.");
+            }
+
             const mapElement = document.getElementById('map') as HTMLElement;
 
             if (mapElement && google) {
@@ -65,10 +68,9 @@ export const Map = ({ center, zoom }: MapProps) => {
 
                     autoComplete.addListener('place_changed', () => {
                         const place = autoComplete.getPlace();
-                        if (place.geometry) {
+                        if (place.geometry && place.geometry.location) {
                             map.setCenter(place.geometry.location);
                             map.setZoom(20);
-                            // 위치 확용용 임시 마커 보여줘여ㅑ됨
                         } else {
                             alert("검색 오류: 다시 시도해 주세요.");
                         }
@@ -88,7 +90,7 @@ export const Map = ({ center, zoom }: MapProps) => {
 
                     if (event.latLng) {
                         const position = event.latLng.toJSON();
-                        geocoderInstance.geocode({ location: position }, (results: google.maps.GeocoderResult[] | undefined, status: google.maps.GeocoderStatus) => {
+                        geocoderInstance.geocode({ location: position }, (results: google.maps.GeocoderResult[] | null, status: google.maps.GeocoderStatus) => {
                             if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
                                 const country = results[0].address_components.find((component) => component.types.includes('country'));
                                 const address = results[0].formatted_address;
@@ -149,9 +151,6 @@ export const Map = ({ center, zoom }: MapProps) => {
             markerCluster?.clearMarkers();
 
             try {
-                showPinTitleModal(false);
-                setSelectedPin(null);
-
                 const pins = await fetchForPins({
                     northEast: { latitude: ne.lat(), longitude: ne.lng() },
                     southWest: { latitude: sw.lat(), longitude: sw.lng() }
