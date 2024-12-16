@@ -5,7 +5,7 @@ interface CurrentCenterPostModalProps extends PostModalProps {
     mapInstance: google.maps.Map | null;
 }
 
-export const CurrentCenterPostModal = ({ onClose, onSubmit, mapInstance }: CurrentCenterPostModalProps) => {
+export const CurrentCenterPostModal = ({ onCancel, onSubmit, mapInstance }: CurrentCenterPostModalProps) => {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [miniMapInstance, setMiniMapInstance] = useState<google.maps.Map | null>(null);
@@ -66,11 +66,11 @@ export const CurrentCenterPostModal = ({ onClose, onSubmit, mapInstance }: Curre
             position
         });
 
-        onClose();
+        onCancel();
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={onCancel}>
             <div className="fixed inset-0 bg-black/40" />
             <div
                 className="relative bg-gray-200 p-6 rounded-lg shadow-lg w-11/12 max-w-md"

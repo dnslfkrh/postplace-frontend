@@ -15,7 +15,7 @@ export interface ConfirmModalProps {
 }
 
 export interface PostModalProps {
-    onClose: () => void;
+    onCancel: () => void;
     onSubmit: (data: {
         title: string;
         content: string;
@@ -29,11 +29,9 @@ export interface NewArticleProps {
     position: { latitude: number; longitude: number};
 }
 
-export interface PinPropsInMap {
+export interface PinPropsInMap extends Position{
     id: number;
     title: string;
-    latitude: number;
-    longitude: number;
 }
 
 export interface SinglePinInfoProps {

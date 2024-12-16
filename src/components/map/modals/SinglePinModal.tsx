@@ -6,7 +6,6 @@ interface SinglePinInfoProps {
     title: string;
     content: string;
     createdAt: string;
-    isUpdated: boolean;
     updatedAt: string | null;
 }
 
@@ -26,9 +25,9 @@ export const SinglePinModal: React.FC<SinglePinModalProps> = ({ pinId, onClose }
                 setIsLoading(true);
                 const data = await fetchForSinglePin(pinId);
                 setPinData(data);
-            } catch (err) {
+            } catch (error) {
                 setError('게시물을 불러오는 중 오류가 발생했습니다.');
-                console.error(err);
+                console.error(error);
             } finally {
                 setIsLoading(false);
             }
@@ -86,9 +85,9 @@ export const SinglePinModal: React.FC<SinglePinModalProps> = ({ pinId, onClose }
                         <span>작성: {pinData.userName}</span>
                         <span>
                             {formatDate(pinData.createdAt)}
-                            {pinData.isUpdated && (
+                            {pinData.updatedAt && (
                                 <span className="ml-2 text-xs text-gray-500">
-                                    (수정됨: {formatDate(pinData.updatedAt || '')})
+                                    (수정: {formatDate(pinData.updatedAt)})
                                 </span>
                             )}
                         </span>

@@ -23,6 +23,7 @@ export const Map = ({ center, zoom }: MapProps) => {
     const searchInputRef = useRef<HTMLInputElement | null>(null);
     const infoWindowRef = useRef<google.maps.InfoWindow | null>(null);
     const [markers, setMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
+    const [tempMarkers, setTempMarkers] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
     const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
     const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
     const [markerCluster, setMarkerCluster] = useState<MarkerClusterer | null>(null);
@@ -31,7 +32,6 @@ export const Map = ({ center, zoom }: MapProps) => {
     const [showPostModal, setShowPostModal] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const [showCurrentCenterModal, setShowCurrentCenterModal] = useState(false);
-    const [pinTitleModal, showPinTitleModal] = useState(false);
     const [showSinglePinModal, setShowSinglePinModal] = useState(false);
 
     useEffect(() => {
@@ -97,6 +97,12 @@ export const Map = ({ center, zoom }: MapProps) => {
                                 console.log('주소:', address);
 
                                 if (country?.short_name === 'KR') {
+                                    handleRemoveTempMarker();
+
+                                    if (mapInstance) {
+                                        addTempMarker(position);
+                                    }
+
                                     setSelectedPosition(position);
                                 } else {
                                     alert("대한민국 영토를 선택해 주세요.");
@@ -169,6 +175,27 @@ export const Map = ({ center, zoom }: MapProps) => {
         }
     }, [mapInstance]);
 
+    const addTempMarker = (position: google.maps.LatLngLiteral) => {
+        if (!mapInstance) {
+            console.error("Map instance is not initialized.");
+            return;
+        }
+        console.log(position);
+
+        const tempMarker = new google.maps.marker.AdvancedMarkerElement({
+            position: position,
+            map: mapInstance,
+        });
+
+        console.log("Temp marker added:", tempMarker);
+
+        setTempMarkers((preTempMarkers) => {
+            const newTempMarkers = [...preTempMarkers, tempMarker];
+            console.log("Updated temp markers state:", newTempMarkers);
+            return newTempMarkers;
+        });
+    };
+
     const addMarker = (pin: PinPropsInMap) => {
         if (!mapInstance) {
             console.error("Map instance is not initialized.");
@@ -239,6 +266,8 @@ export const Map = ({ center, zoom }: MapProps) => {
 
                 const pin: PinPropsInMap = await fetchToCreateArticle(articleData);
 
+                handleRemoveTempMarker();
+
                 addMarker(pin);
 
                 alert("마커가 등록되었습니다!");
@@ -265,8 +294,13 @@ export const Map = ({ center, zoom }: MapProps) => {
         setShowCurrentCenterModal(true);
     };
 
-    const handleCloseCurrentCenterModal = () => {
-        setShowCurrentCenterModal(false);
+    const handleRemoveTempMarker = () => {
+        if (tempMarkers) {
+            tempMarkers.forEach((tempMarker) => {
+                tempMarker.map = null;
+            });
+            setTempMarkers([]);
+        }
     };
 
     return (
@@ -292,16 +326,21 @@ export const Map = ({ center, zoom }: MapProps) => {
                 <ConfirmModal
                     message="이 위치에 마커 추가하기"
                     onConfirm={() => handleOpenPostModal(selectedPosition)}
-                    onCancel={() => setSelectedPosition(null)}
+                    onCancel={() => {
+                        setShowPostModal(false);
+                        setSelectedPosition(null);
+                        handleRemoveTempMarker();
+                    }}
                 />
             )}
 
             {/* 지도 클릭 후 게시물 작성 모달 */}
             {showPostModal && selectedPosition && (
                 <PostModal
-                    onClose={() => {
+                    onCancel={() => {
                         setShowPostModal(false);
                         setSelectedPosition(null);
+                        handleRemoveTempMarker();
                     }}
                     onSubmit={(postData) => handleSubmitPost(postData)}
                     position={{
@@ -325,7 +364,11 @@ export const Map = ({ center, zoom }: MapProps) => {
             {/* 현재 위치에 게시물 작성하는 모달 */}
             {showCurrentCenterModal && (
                 <CurrentCenterPostModal
-                    onClose={handleCloseCurrentCenterModal}
+                    onCancel={() => {
+                        setShowPostModal(false);
+                        setSelectedPosition(null);
+                        handleRemoveTempMarker();
+                    }}
                     onSubmit={handleSubmitPost}
                     mapInstance={mapInstance}
                 />

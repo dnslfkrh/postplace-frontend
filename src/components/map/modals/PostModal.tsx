@@ -5,23 +5,23 @@ interface ExtendedPostModalProps extends PostModalProps {
     position: Position;
 }
 
-export const PostModal = ({ onClose, onSubmit, position }: ExtendedPostModalProps) => {
+export const PostModal = ({ onCancel, onSubmit, position }: ExtendedPostModalProps) => {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSubmit({ 
-            title, 
-            content, 
+        onSubmit({
+            title,
+            content,
             position
         });
-        onClose();
+        onCancel();
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-            <div className="fixed bg-black/40"/>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onCancel}>
+            <div className="fixed bg-black/40" />
             <div className="relative bg-gray-200 p-6 rounded-lg shadow-lg w-11/12 max-w-md" onClick={(e) => e.stopPropagation()}>
                 <h2 className="text-xl font-semibold mb-4 text-gray-900 flex justify-center">게시물을 지도 위에 표시해 봐요</h2>
                 <form onSubmit={handleSubmit}>
