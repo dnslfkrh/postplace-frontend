@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# postplace: 지도 위에 게시판
+지도 위 원하는 곳에 직접 게시글을 작성
 
-## Getting Started
+## 기능 구현
+- 원하는 위치 클릭을 통한 게시글 작성
+- 현재 화면 중앙에 게시글 작성
+- 현재 화면에 표시되는 지도 위 게시글 가져오기
+- 플레이스 검색색
+- 게시글 클러스터링
 
-First, run the development server:
+## 사용된 기술
+- NextJS, NestJS, MySQL, Google Map API, Google OAuth 2.0
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 시연 화면
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 로그인 화면
+![Image](https://github.com/user-attachments/assets/d5429212-3a9e-4254-b273-a23f43c19a96)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 원하는 곳에 게시글 작성(1): 지도 클릭
+![Image](https://github.com/user-attachments/assets/0b2b8425-2ddb-4b25-aafa-567a7244bd02)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 원하는 곳에 게시글 작성(2): 게시글 작성
+![Image](https://github.com/user-attachments/assets/7aecc3e7-2ea1-41f1-900d-b90b21bcc0d8)
 
-## Learn More
+### 지도 위에 마커로 저장된 게시글
+![Image](https://github.com/user-attachments/assets/1df8df36-63e6-4c88-8169-09c6b9197425)
 
-To learn more about Next.js, take a look at the following resources:
+### 플레이스 검색
+![Image](https://github.com/user-attachments/assets/e038e26c-0e61-4bb0-b10f-36264ee55c90)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 현재 화면에 게시글 작성: + 버튼 클릭 후 게시글 작성
+![Image](https://github.com/user-attachments/assets/f5607d46-5a9f-4d9c-9eed-bb1e2bce39bc)
