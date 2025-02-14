@@ -364,12 +364,11 @@ export const Map = ({ center, zoom }: MapProps) => {
             {/* 현재 위치에 게시물 작성하는 모달 */}
             {showCurrentCenterModal && (
                 <CurrentCenterPostModal
-                    onCancel={() => {
-                        setShowPostModal(false);
-                        setSelectedPosition(null);
-                        handleRemoveTempMarker();
+                    onCancel={() => setShowCurrentCenterModal(false)}
+                    onSubmit={(postData) => {
+                        handleSubmitPost(postData);
+                        setShowCurrentCenterModal(false);
                     }}
-                    onSubmit={handleSubmitPost}
                     mapInstance={mapInstance}
                 />
             )}
