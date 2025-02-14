@@ -5,11 +5,15 @@
 - 원하는 위치 클릭을 통한 게시글 작성
 - 현재 화면 중앙에 게시글 작성
 - 현재 화면에 표시되는 지도 위 게시글 가져오기
-- 플레이스 검색색
+- 플레이스 검색
 - 게시글 클러스터링
 
 ## 사용된 기술
-- NextJS, NestJS, MySQL, Google Map API, Google OAuth 2.0
+- NextJS
+- NestJS
+- MySQL
+- Google Map API
+- Google OAuth 2.0
 
 ## 시연 화면
 
